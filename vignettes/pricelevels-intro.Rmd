@@ -1,0 +1,640 @@
+---
+title: "Introduction to the pricelevels-package"
+author: Sebastian Weinand
+date: "`r Sys.setlocale('LC_TIME', 'English'); format(Sys.Date(),'%d %B %Y')`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    # toc_depth: 2
+    # number_sections: true
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{Introduction to the pricelevels-package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+Sys.setenv(LANGUAGE="en")
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+<br/><br/>
+The `pricelevels`-package provides index number methods for price comparisons within or between countries. As price comparisons over time usually rely on the same index number methods, the package has been denoted more generally as `pricelevels`, though its primary focus is on spatial price comparisons. Currently, the following index number methods (or price indices) are implemented.
+
+1. **Bilateral price indices**:
+    - Elementary (unweighted) indices:
+      * Jevons: `jevons()`
+      * Dutot: `dutot()`
+      * Carli: `carli()`
+      * Harmonic: `harmonic()`
+      * BMW: `bmw()`
+      * CSWD: `cswd()`
+    - Unit value related indices:
+      * Unit value index: `uvalue()`
+      * Banerjee: `banerjee()`
+      * Davies: `davies()`
+      * Lehr: `lehr()`
+    - Quantity or expenditure share weighted indices:
+      * (Geometric) Laspeyres: `laspeyres()` and `geolaspeyres()`
+      * (Geometric) Paasche: `paasche()` and `geopaasche()`
+      * Fisher: `fisher()`
+      * Toernqvist: `toernqvist()`
+      * (Geometric) Walsh: `walsh()` and `geowalsh()`
+      * Theil: `theil()`
+      * Marshall-Edgeworth: `medgeworth()`
+      * Palgrave: `palgrave()`
+      * Sato-Vartia: `svartia()`
+      * Drobisch: `drobisch()`
+      * Lowe: `lowe()`
+      * Young: `young()`
+2. **Multilateral price indices**: 
+    - CPD and NLCPD methods: `cpd()` and `nlcpd()`
+    - GEKS method: `geks()`
+    - Multilateral systems of equations:
+      * Geary-Khamis: `gkhamis()`
+      * Iklé-Dikhanov-Balk: `idb()`
+      * Gerardi: `gerardi()`
+      * Rao: `rao()`
+
+Moreover, the package offers functions for sampling and characterizing price data. This vignette highlights the main package features. It contains four sections. The first is on price data, the second on bilateral indices, and the third on multilateral indices. The last section section is on some further package features.
+
+The `pricelevels`-functions are designed based on `R`'s [`data.table`](https://CRAN.R-project.org/package=data.table)-package.
+```{r setup, warning=FALSE}
+library(pricelevels) # load package
+library(data.table) # load data.table-package
+```
+
+# Price data
+
+Data for spatial price comparisons usually have three dimensions:
+
+* the *region* $(r=1,\ldots,R)$, which can be a country, city, or any other regional entity,
+* the *basic heading* $(b=1,\ldots,B)$, which is a group of similar products for which expenditure weights, $w_{b}$ or $w_{b}^{r}$, are available,
+* and the *individual product* $(n=1,\ldots,N_b)$, for which prices $p_{bn}^r$ are recorded.
+
+For transaction and supermarket scanner data, purchased quantities $q_{bn}^r$ of the individual products are often available.
+
+Having such detailed data can pose some additional challenges. Not every individual product might be available in each region. Hence, there are gaps in the data. In the worst case these gaps can result in *non-connected* price data [@WorldBank2013 p. 98], where price level comparisons of all regions are no longer possible.
+
+## Characteristics
+
+The `pricelevels`-package offers various functions to characterize price data and to deal with the issue of data gaps. As a first step, it's good to check the sparsity (*share of gaps*) of a dataset and if the dataset is connected.
+
+### Connected price data
+
+Suppose we have prices for 5 products (all belonging to the same basic heading) in 4 regions. These data are stored in the data.table `dt`. Transforming `dt` into a price matrix (rows: products; columns: regions) shows that the data exhibit gaps as products `4` and `5` are not priced in regions `c` and `d`, respectively.
+```{r}
+# example price data with gaps:
+dt <- data.table(
+  "r"=c(rep(c("a","b"), each=5), rep(c("c","d"), each=3)),
+  "n"=as.character(c(rep(1:5, 2), rep(1:3, 2))),
+  "p"=round(runif(16, min=10, max=20), 1))
+
+# price matrix:
+dt[, tapply(X=p, INDEX=list(n,r), FUN=mean)]
+```
+Due to the gaps, the `sparsity()` of this dataset is greater 0. As there are only a few gaps, however, function `is.connected()` indicates that the dataset is connected. The function `comparisons()` provides some further details. It shows that all four regions form one 'block of connected regions' since they are connected via direct or indirect links. Moreover, the function output highlights that each region can be directly compared with the other regions using at least one price ratio.
+```{r}
+dt[, sparsity(r=r, n=n)] # sparsity
+
+dt[, is.connected(r=r, n=n)] # is connected
+
+dt[, comparisons(r=r, n=n)] # one group of regions
+```
+
+### Non-connected price data
+
+Let's assume now that prices for products `1`, `2`, and `3` are no longer available in regions `a` and `b` (for example because these products are not sold there anymore). This situation is captured in data.table `dt2`. In total, the price data still include 4 regions and 5 products. However, the price matrix reveals that the pattern of gaps changed. 
+```{r}
+# non-connected example price data:
+dt2 <- dt[!(n%in%1:3 & r%in%c("a","b")),]
+
+# price matrix:
+dt2[, tapply(X=p, INDEX=list(n,r), FUN=mean)]
+```
+The sparsity increased to `r dt2[, sparsity(r=r, n=n)]`. Even worse, the dataset is no longer connected. This can be easily seen from the price matrix, where regions `a` and `b` form one block of connected regions, and regions `c` and `d` another but separate block. This is also highlighted in the output of `comparisons()`, which now has two rows.
+```{r}
+dt2[, sparsity(r=r, n=n)] # sparsity
+
+dt2[, is.connected(r=r, n=n)] # is not connected
+
+dt2[, comparisons(r=r, n=n)] # two groups of regions
+```
+The fact that the dataset `dt2` is not connected does not mean that no price comparison is possible. It only means that a price comparison of *all* regions cannot be done. The function output of `comparisons()` shows that separate price comparisons within each block of regions could be done. However, it is clear that a comparison of the price levels between the two blocks is still not possible. To follow this approach, the regions in `dt2` can be classified into blocks of connected regions using the function `neighbors()`. Otherwise, if one wants to carry out the price comparison only for the biggest block of connected regions, `dt2` can be connected using function `connect()`, as shown below.
+```{r}
+# group regions into groups of connected regions:
+dt2[, "block" := neighbors(r=r, n=n, simplify=TRUE)]
+dt2[, is.connected(r=r, n=n), by="block"]
+
+# subset to biggest group of connected regions:
+dt2[connect(r=r, n=n), is.connected(r=r, n=n)]
+```
+Both approaches allow to perform a price comparison on a subset of the data by excluding some regions. 
+
+## Simulation
+
+The quality of price data is of utmost importance for the reliability of a regional price comparison. To assess the impact of gaps on the reliability of price index numbers, it is helpful to control the amount of gaps in the price data. At the same time, however, it must be ensured that the price data stay connected. A simplistic approach of simulating price data would not guarantee this. Therefore, the `pricelevels`-package offers some functions for data sampling.
+
+In the following, we want to simulate random price data for 5 products within the same basic heading in 4 regions. This can be easily achieved if there are no data gaps. First, products and regions are sampled. Second, random prices are added. 
+```{r}
+R <- 4 # number of regions
+N <- 5 # number of products
+
+# set frame:
+dt <- data.table("r"=as.character(rep(1:R, each=N)),
+                 "n"=as.character(rep(1:N, times=R)))
+
+# add random prices:
+set.seed(1)
+dt[, "p":=round(x=rnorm(n=.N, mean=as.integer(n), sd=0.1), digits=1)]
+
+# price matrix:
+dt[, tapply(X=p, INDEX=list(n,r), FUN=mean)]
+```
+
+### Data gaps
+
+It is clear that the price data `dt` are connected. However, to get more realistic data, we have to introduce gaps. This can be done randomly as well. If there are only few gaps, the likelihood to end up with non-connected price data is relatively low. However, with more gaps, it can happen that the resulting price data are no longer connected. To overcome this issue, the function `rgaps()` introduces gaps into an existing (complete) dataset while ensuring that the data stay connected. In the following, we introduce approx. 20% gaps into the price data `dt`.
+```{r}
+# introduce gaps:
+set.seed(1)
+dt.gaps <- dt[!rgaps(r=r, n=n, amount=0.2), ]
+
+# price matrix:
+dt.gaps[, tapply(X=p, INDEX=list(n,r), FUN=mean)]
+```
+From the price matrix, we see that there is no price for product `1` in region `1`. The `rgaps()`-function also allows to exclude specific regions and/or products from the sampling of gaps. If we want, for example, that there are generally no gaps in region `1`, we can implement this as follows:
+```{r}
+# introduce gaps but not for region 1:
+set.seed(1)
+dt.gaps <- dt[!rgaps(r=r, n=n, amount=0.2, exclude=data.frame(r="1", n=NA)), ]
+
+# price matrix:
+dt.gaps[, tapply(X=p, INDEX=list(n,r), FUN=mean)]
+```
+We see from the price matrix that no price is missing in region `1`.
+
+If the gaps should occur with a higher likelihood for specific regions and/or products, this can be defined as well. The `prob`-argument in `rgaps()` allows to specify for each observation the (relative) likelihood that gaps occur at this position in the data. In the following example, gaps will occur more often for products `4` and `5`.
+```{r}
+# introduce gaps with probability:
+set.seed(1)
+dt.gaps <- dt[!rgaps(r=r, n=n, amount=0.2, prob=as.integer(n)^2), ]
+
+# price matrix:
+dt.gaps[, tapply(X=p, INDEX=list(n,r), FUN=mean)]
+```
+
+### Expenditure weights
+
+The price data in `dt` represent the data that statistical offices usually collect as quantities or weights on individual products are not available. However, transaction data often include purchased quantities while data at the basic heading level exhibit expenditure weights as an indication of the relative importance for household consumption.
+
+As the purchased quantities can be expected to heavily depend on the prices of products, there is no stand-alone function for the sampling of random quantities. However, random expenditure weights for basic headings can be added to some dataset using the function `rweights()`. These weights can be the same for each basic heading in each region, differ across basic headings but are the same for each region, or differ across basic headings and regions. This is shown below, where we sample the weights for the individual products (and not basic headings):
+```{r}
+# constant expenditure weights:
+dt.gaps[, "w1" := rweights(r=r, b=n, type=~1)]
+dt.gaps[, tapply(X=w1, INDEX=list(n,r), FUN=mean)]
+
+# weights different for basic headings but same among regions:
+dt.gaps[, "w2" := rweights(r=r, b=n, type=~n)]
+dt.gaps[, tapply(X=w2, INDEX=list(n,r), FUN=mean)]
+
+# weights different for basic headings and regions:
+dt.gaps[, "w3" := rweights(r=r, b=n, type=~n+r)]
+dt.gaps[, tapply(X=w3, INDEX=list(n,r), FUN=mean)]
+```
+If there are no gaps in the data, the weights always add up to 1. With gaps, however, the `type` of weights is prioritized, meaning that constant weights remain constant even though a renormalization would have led to different weights across basic heading and regions. Therefore, the weights do not necessarily add up to 1 in each region. Of course, the weights can easily be renormalized if necessary.
+```{r}
+# weights not necessarily add up to 1 if there are gaps:
+dt.gaps[, list("w1"=sum(w1),"w2"=sum(w2),"w3"=sum(w3)), by="r"]
+```
+
+### Price data
+
+The previous steps to simulate random price data are put together in the function `rdata()`. This function easily simulates random price data for a specified number of regions, basic headings, and individual products including gaps and weights. However, beside this easier usage, there are some additional benefits:
+
+* Prices *and* quantities for each individual product are simulated.
+* Sales can be introduced. Some prices and quantities are adjusted by a random factor. The sales are flagged in the data.
+* The generation of prices follows a more sophisticated model (see also the NLCPD method below):
+\begin{equation}
+  p_{bn}^r = \pi_{bn} \ (P^r)^{\delta_{bn}} \ u_{bn}^r \ ,
+\end{equation}
+where the price of product $n$ in region $r$, $p_{bn}^r$, is explained by the general product price, $\pi_{bn}$, the product-specific elasticities $\delta_{bn}$, and the regional price level, $P^r$. The error term $u_{bn}^r$ follows a lognormal distribution.
+* The parameters used for the data generating process (i.e., the model above) are stored by `rdata()` and can be added to the function output if desired. This is particularly useful for simulations where some calculated price levels are compared to the 'true' price levels underlying the data generation.
+
+The following code snippet shows how easily a connected price dataset with gaps, sales and expenditure weights for $B=4$ basic headings with $N_b=(2,2,3,3)$ products in $R=9$ regions can be simulated.
+```{r}
+# simulate random price data:
+set.seed(123)
+srp <- rdata(
+  R=9, # number of regions
+  B=4, # number of product groups
+  N=c(2,2,3,3), # number of individual products per basic heading
+  gaps=0.2, # share of gaps
+  weights=~b, # same varying expenditure weights for regions
+  sales=0.1, # share of sales
+  settings=list(par.add=TRUE) # add true parameters to function output
+  )
+
+# true parameters:
+srp$param
+
+# price data:
+head(srp$data)
+```
+
+```{r, echo=FALSE, fig.width=7, fig.height=4, fig.align='center'}
+# plot prices by basic heading and product:
+boxplot(log(price)~paste(group, product, sep=":"), 
+        data=srp$data, 
+        xlab="basic heading / product",
+        col="skyblue")
+title("Prices by basic heading and individual product")
+```
+
+The graph shows that the individual products' prices vary across regions and within the basic heading. However, while they are at similar levels within the same basic heading, they can considerably differ between basic headings.
+
+# Bilateral price indices
+
+Bilateral price indices compute the overall price level difference between two regions. For that purpose, the prices of individual products available in both regions are aggregated into a price index showing the price level difference of the *comparison region* relative to the *base region*. If quantities, expenditure shares, or any other sort of information on economic importance are available, these data can serve as weights in the aggregation. Otherwise, prices must be aggregated without any weights. Both approaches are shown in the following examples, where price data for four products belonging to the same basic heading were collected in five regions.
+
+```{r, fig.width=7, fig.align='center'}
+# simulate random price data:
+set.seed(1)
+dt <- rdata(R=5, B=1, N=4)
+head(dt)
+```
+
+## Elementary (unweighted) indices
+
+If prices are collected by statistical offices locally (*local or field-based price collection*), quantities or any other information of the economic importance of the individual products are usually lacking. Therefore, the prices must be aggregated without any weights. The most prominent *elementary price indices* are implemented in the `pricelevels`-package:
+
+- Carli index [@Carli1804]: $$P_{\text{Carli}}^{sr} = \frac{1}{N} \sum_{n=1}^{N} p_n^r / p_n^s$$
+- Jevons index [@Jevons1865]: $$P_{\text{Jevons}}^{sr} = \prod_{n=1}^{N} \left( p_n^r / p_n^s \right)^{1/N}$$
+- Harmonic mean index [@Jevons1865; @Coggeshall1886]: $$P_{\text{Harmonic}}^{sr} = \frac{N}{\sum_{n=1}^{N} p_n^s / p_n^r}$$
+- Dutot index [@Dutot1738]: $$P_{\text{Dutot}}^{sr} = \frac{\sum_{n=1}^{N} p_n^r}{\sum_{n=1}^{N} p_n^s}$$
+- BMW index [@Balk2005; @Mehrhoff2007]: $$P^{sr}_{\text{BMW}} = \frac{\sum_{n=1}^N \sqrt{p_n^r / p_n^s} }{ \sum_{n=1}^{N} \sqrt{p_n^s / p_n^r} }$$
+- CSWD index [@Carruthers1980; @Dalen1992]: $$P_{\text{CSWD}}^{sr} = \sqrt{P_{\text{Carli}}^{sr} \ P_{\text{Harmonic}}^{sr}} \ ,$$
+
+where the indices express the prices of each region $r$ relative to the base region $s$ based on the prices of the individual products $n \left(n=1,\ldots,N\right)$.
+
+If we want to compare the prices of each region in the data `dt` to those in region `1` using the Jevons index, we can set region `1` as the base region in the function `jevons()`:
+```{r}
+dt[, jevons(p=price, r=region, n=product, base="1")]
+```
+Similarly, we can compute the price index numbers relative the base region `2` using the Dutot index:
+```{r}
+dt[, dutot(p=price, r=region, n=product, base="2")]
+```
+The price comparison of each region relative to region `2` are carried out separately (or bilaterally). Each bilateral price comparison thus relies solely on the prices of the two regions that are compared. This is the rationale of bilateral price indices. However, it also results in some undesirable properties. 
+
+A price comparison of region `2` to `1` should generally give the same result as the reciprocal of the price comparison of region `1` to `2`. This requirement is denoted as the *country reversal test*. However, as shown below, only the Jevons index and the Dutot index comply with this requirement for the considered dataset.
+```{r}
+# harmonic mean index fails:
+all.equal(
+ dt[, harmonic(p=price, r=region, n=product, base="1")][2],
+ 1/dt[, harmonic(p=price, r=region, n=product, base="2")][1],
+ check.attributes=FALSE)
+
+# carli fails:
+all.equal(
+ dt[, carli(p=price, r=region, n=product, base="1")][2],
+ 1/dt[, carli(p=price, r=region, n=product, base="2")][1],
+ check.attributes=FALSE)
+
+# jevons index ok:
+all.equal(
+ dt[, jevons(p=price, r=region, n=product, base="1")][2],
+ 1/dt[, jevons(p=price, r=region, n=product, base="2")][1],
+ check.attributes=FALSE)
+
+# dutot index ok:
+all.equal(
+ dt[, dutot(p=price, r=region, n=product, base="1")][2],
+ 1/dt[, dutot(p=price, r=region, n=product, base="2")][1],
+ check.attributes=FALSE)
+
+```
+The resulting price index numbers of the Carli index and the Harmonic mean index depend on the choice of the base region. Consequently, if one changes the base region also the regional price level differences change.
+
+Another important requirement on spatial price index numbers is *transitivity*, which demands that a direct price comparison of two regions gives the same result as an indirect comparison of the two regions via a third one. Consequently, transitivity ensures the consistency of a set of price index numbers. Again, if there are no data gaps, the Jevons and Dutot indices are transitive, while the Carli and Harmonic mean indices fail this test.
+
+## Unit value related indices
+
+A unit value divides the total expenditure of several products by the purchased quantities. This concept is only meaningful if the products are homogeneous. Otherwise, the quantities could not be added up in a meaningful way, which would result in a unit value bias. Several approaches exist that try to adjust the quantities in a way that they can be properly added up. Prominent examples are the indices proposed by @Banerjee1977, @Davies1924, and @Lehr1885. They are defined as follows:
+
+- Unit value index [@Drobisch1871a; @Drobisch1871b]: $$P^{sr}_{\text{Unit-Value}} = \frac{\sum_{n=1} p_n^r q_n^r}{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1} q_n^s}{\sum_{n=1} q_n^r}$$
+- Banerjee index [@Banerjee1977]: $$P^{sr}_{\text{Banerjee}} = \frac{\sum_{n=1} p_n^r q_n^r }{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1} q_n^s \left( p_n^r + p_n^s \right) / 2}{\sum_{n=1}  q_n^r \left( p_n^r + p_n^s \right) / 2}$$
+- Davies index [@Davies1924]: $$P^{sr}_{\text{Davies}} = \frac{\sum_{n=1} p_n^r q_n^r }{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1} q_n^s \sqrt{p_n^r p_n^s}}{\sum_{n=1}  q_n^r \sqrt{p_n^r p_n^s}}$$
+- Lehr index [@Lehr1885]: $$P^{sr}_{\text{Lehr}} = \frac{\sum_{n=1} p_n^r q_n^r }{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1} q_n^s \left( p_n^r q_n^r + p_n^s q_n^s \right) / \left( q_n^r + q_n^s\right)}{\sum_{n=1}  q_n^r \left( p_n^r q_n^r + p_n^s q_n^s \right) / \left( q_n^r + q_n^s\right)} \ ,$$
+
+where $q_n^r$ is the purchased quantity of product $n$ in region $r$. The latter three indices can be somehow seen as quality-adjusted unit value indices. This becomes more clear when rewriting the underlying formula as:
+$$P^{sr}_{\text{QAUV}} = \frac{\sum_{n=1} p_n^r q_n^r }{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1} q_n^s z_n^{sr}}{\sum_{n=1}  q_n^r z_n^{sr}} \ ,$$
+where the quality-adjustment factors $z_n^{sr}$ are defined as
+$$z_n^{sr} = \begin{cases} \left( p_n^r + p_n^s \right) / 2 & \text{if Banerjee index} \\ \sqrt{p_n^r p_n^s} & \text{if Davies index} \\ \left( p_n^r q_n^r + p_n^s q_n^s \right) / \left( q_n^r + q_n^s\right) & \text{if Lehr index} \end{cases}$$
+For the standard unit value index, the quality-adjustment factor would simply be 1.
+
+The indices can be computed separately for each region using the quantities available in the data, e.g., for a unit value index as follows:
+```{r}
+# unit value index:
+dt[, uvalue(p=price, r=region, n=product, q=quantity, base="1")]
+```
+The unit value indices have the drawback that the resulting price index might show price level differences which solely come from the quantities. Hence, even when all prices in two regions are identical, the price index might not be unity due to different quantities. This often undesirable property is avoided by the following weighted price indices.
+
+## Quantity or expenditure share weighted indices
+
+Not each individual product or basic heading is equally important to consumers. Household consumption considerably varies across basic headings but also for individual products within a basic heading. Neglecting these differences may cause a bias in the price index numbers as the price differences of less important products receive the same weight as more important ones. Therefore, any weighting information available should be included in the price comparison. The `pricelevels`-package offers the following weighted bilateral price indices. They equally work with quantities, $q_n^r$, and weights, $w_n^r$, when the weights can be expressed as regional expenditure shares, i.e., $w_n^r = p_n^r q_n^r / \sum_{j=1}^N p_j^r q_j^r$.
+
+- Laspeyres index [@Laspeyres1871]: $$P_{\text{Laspeyres}}^{sr} = \frac{\sum_{n=1}^{N} p_n^r q_n^s}{\sum_{n=1}^{N} p_n^s q_n^s} = \sum_{n=1}^{N} w_n^s \left( p_n^r / p_n^s \right)$$
+- Paasche index [@Paasche1874]: $$P_{\text{Paasche}}^{sr} = \frac{\sum_{n=1}^{N} p_n^r q_n^r}{\sum_{n=1}^{N} p_n^s q_n^r} = \frac{1}{\sum_{n=1}^{N} w_n^r \left( p_n^s / p_n^r \right)}$$
+- Palgrave index [@Palgrave1886]: $$P_{\text{Palgrave}}^{sr} = \sum_{n=1}^N w_n^r \left( p_n^r / p_n^s \right)$$
+- Fisher index [@Fisher1921]: $$P_{\text{Fisher}}^{sr} = \sqrt{P_{\text{Laspeyres}}^{sr} \ P_{\text{Paasche}}^{sr}}$$
+- Drobisch index [@Drobisch1871a; @Drobisch1871b]: $$P_{\text{Drobisch}}^{sr} = \left( P_{\text{Laspeyres}}^{sr} + P_{\text{Paasche}}^{sr} \right) / 2$$
+- Lowe index [@Lowe1823]: $$\begin{aligned} P_{\text{Lowe}}^{sr} &= \frac{\sum_{n=1}^{N} p_n^r q_n^b}{\sum_{n=1}^{N} p_n^s q_n^b}\\ &= \sum_{n=1}^{N} w_n^b \left( p_n^r / p_n^s \right) \quad , \text{with} \ w_n^{b} = \frac{p_n^s q_n^b}{\sum_{j=1}^N p_j^s q_j^b} \end{aligned}$$
+- Young index [@Young1812]: $$P_{\text{Young}}^{sr} = \sum_{n=1}^{N} w_n^b \left( p_n^r / p_n^s \right) \quad , \text{with} \ w_n^{b} = \frac{p_n^b q_n^b}{\sum_{j=1}^N p_j^b q_j^b}$$
+- Marshall-Edgeworth index [@Marshall1887; @Edgeworth1925]: $$\begin{aligned} P_{\text{Marshall-Edgeworth}}^{sr} &= \frac{\sum_{n=1}^N p_n^r \left( q_n^r + q_n^s \right)}{\sum_{n=1}^N p_n^s \left( q_n^r + q_n^s \right)} \\ &= \sum_{n=1}^N \bar{w}_n^{sr} \left( p_n^r / p_n^s \right) \quad , \text{with} \ \bar{w}_n^{sr} = \frac{p_n^s \left( q_n^r + q_n^s \right)}{\sum_{j=1}^N p_j^s \left( q_j^r + q_j^s \right)} \end{aligned}$$
+- Walsh index [@Walsh1901]: $$\begin{aligned} P_{\text{Walsh}}^{sr} &= \frac{\sum_{n=1}^{N} \sqrt{q_n^r q_n^s} \ p_n^r}{\sum_{n=1}^{N} \sqrt{q_n^r q_n^s} \ p_n^s}\\ &= \frac{\sum_{n=1}^{N} \left( \bar{w}_n^{sr} / \sum_{j=1}^N \bar{w}_j^{sr} \right) \sqrt{p_n^r / p_n^s}}{\sum_{n=1}^{N} \left( \bar{w}_n^{sr} / \sum_{j=1}^N \bar{w}_j^{sr} \right) \sqrt{p_n^s / p_n^r}} \quad , \text{with} \ \bar{w}_n^{sr} = \sqrt{w_n^r w_n^s} \end{aligned}$$
+- Geometric Laspeyres index: $$P_{\text{Geo-Laspeyres}}^{sr} = \prod_{n=1}^N \left( p_n^r / p_n^s \right)^{w_n^s}$$
+- Geometric Paasche index: $$P_{\text{Geo-Paasche}}^{sr} = \prod_{n=1}^N \left( p_n^r / p_n^s \right)^{w_n^r}$$
+- Törnqvist index [@Toernqvist1936]: $$\begin{aligned} P_{\text{Törnqvist}}^{sr} &= \sqrt{P_{\text{Geo-Laspeyres}}^{sr} \ P_{\text{Geo-Paasche}}^{sr}}\\ &= \prod_{n=1}^N \left( p_n^r / p_n^s \right)^{\bar{w}_n^{sr} / \sum_{j=1}^N \bar{w}_j^{sr}} \quad , \text{with} \ \bar{w}_n^{sr} = \frac{1}{2} \left( w_n^r + w_n^s \right) \end{aligned}$$
+- Geometric Walsh index [@Walsh1901]: $$P_{\text{Geo-Walsh}}^{sr} = \prod_{n=1}^N \left( p_n^r / p_n^s \right)^{\bar{w}_n^{sr} / \sum_{j=1}^N \bar{w}_j^{sr}} \quad , \text{with} \ \bar{w}_n^{sr} = \sqrt{w_n^r w_n^s}$$
+- Theil index [@Theil1973]: $$P_{\text{Theil}}^{sr} = \prod_{n=1}^N \left( p_n^r / p_n^s \right)^{\bar{w}_n^{sr} / \sum_{j=1}^N \bar{w}_j^{sr}} \quad , \text{with} \ \bar{w}_n^{sr} = \left[ \frac{1}{2} \left( w_n^r + w_n^s \right) \ w_n^r \ w_n^s \right]^{1/3}$$
+- Sato-Vartia index [@Sato1976; @Vartia1976]:  $$P_{\text{Sato-Vartia}}^{sr} = \prod_{n=1}^N \left( p_n^r / p_n^s \right)^{\bar{w}_n^{sr} / \sum_{j=1}^N \bar{w}_j^{sr}} \quad , \text{with} \ \bar{w}_n^{sr} = \begin{cases} \frac{w_n^r-w_n^s}{\ln{w_n^r}-\ln{w_n^s}} & w_n^r \neq w_n^s \\ w_n^s & w_n^r = w_n^s \end{cases}$$
+
+The well-known Laspeyres index can be computed for each region using the quantities available in the data:
+```{r}
+dt[, laspeyres(p=price, r=region, n=product, q=quantity, base="1")]
+```
+The same result can be achieved by deriving expenditure shares of the individual products and using them as weights `w` in the `laspeyres()`-function:
+```{r}
+dt[, "share" := price*quantity/sum(price*quantity), by="region"]
+dt[, laspeyres(p=price, r=region, n=product, w=share, base="1")]
+```
+While the Laspeyres index uses the quantities (or expenditure shares) of the base region for weighting, the Paasche index relies on the quantities (or expenditure shares) of the comparison regions. By contrast, the Fisher, Walsh, and Törnqvist index average the quantities (or expenditure shares) of the two regions involved in the price comparison. They are also denoted as *superlative price indices*. However, all bilateral indices fail the country reversal and transitivity test if there are gaps in the data. Therefore, multilateral price indices have been developed to deal with this issue. Their use is recommended in particular for spatial price comparisons though they are nowadays more and more used for temporal price comparisons as well.
+
+# Multilateral price indices
+
+Multilateral price indices simultaneously use the prices of all regions involved in the price comparison to compute a set of transitive price index numbers - irrespective of any data gaps. The `pricelevels`-package offers the three most prominent multilateral price indices, and a newly developed extension:
+
+- CPD and NLCPD methods: `cpd()` and `nlcpd()`
+- GEKS method: `geks()`
+- Multilateral systems of equations: `gkhamis()`, `idb()`, `gerardi()`, and `rao()`
+
+## CPD and NLCPD methods
+
+The CPD method [@Summers1973] is a linear regression model that explains the logarithmic price of product $n$ in region $r$, $\ln p_n^r$, by the general product prices, $\ln \pi_n \ (n=1,\ldots,N)$, and the overall regional price levels, $\ln P^r \ (r=1,\ldots,R)$:
+
+$$\ln p_n^r = \ln \pi_n + \ln P^r + \ln \epsilon_n^r \quad \text{with} \ \ln \epsilon_n^r \sim N(0, \sigma^2)$$
+@Auer2022a recently proposed a generalization of the CPD method. This nonlinear CPD method (NLCPD method) inflates the CPD model by product-specific elasticities $\delta_n \ (n=1,\ldots,N)$:
+
+$$\ln p_n^r = \ln \pi_n + \delta_n \ln P^r + \ln \epsilon_n^r \quad \text{with} \ \ln \epsilon_n^r \sim N(0, \sigma^2)$$
+The CPD method implicitly assumes that all $\delta_n=1$. However, this assumption is not very realistic as price elasticities can considerably differ between the products, particularly at higher levels (e.g., rents versus food).
+
+Estimating the CPD and NLCPD regression model produces estimates for the regional price levels, respectively. However, both methods require a normalization of the estimated price levels $\widehat{\ln P^r}$ to avoid multicollinearity. With normalization $\sum_{r=1}^{R} \widehat{\ln P^r}=0$, the price levels are expressed relative to the regional average; otherwise, the (logarithm of the) price level of one specific region is set to 0. The NLCPD method conditionally imposes the restriction $\sum_{n=1}^{N} w_n \widehat{\delta_n}=1$, which is satisfied by the CPD method by definition.
+
+The CPD and NLCPD methods are implemented in the functions `cpd()` and `nlcpd()`. The functions can be used similarly to those for bilateral indices as shown below. However, if requested by the user, they provide some additional information and they can express the regional price levels relative to the unweighted regional average by setting `base=NULL`.
+```{r}
+# CPD estimation with respect to regional average:
+dt[, cpd(p=price, r=region, n=product, q=quantity, base=NULL)]
+
+# CPD estimation with respect to region 1:
+dt[, cpd(p=price, r=region, n=product, q=quantity, base="1")]
+
+# same price levels with shares as weights:
+dt[, cpd(p=price, r=region, n=product, w=share, base="1")]
+
+# NLCPD estimation with shares as weights:
+dt[, nlcpd(p=price, r=region, n=product, w=share, base="1")]
+```
+If not only the (unlogged) price level estimates but the full regression output is of interest, this can be retrieved by setting `simplify=FALSE` in the functions (shown below for `cpd()`):
+```{r}
+# full CPD regression output:
+dt[, cpd(p=price, r=region, n=product, w=share, simplify=FALSE)]
+```
+The NLCPD method solves a nonlinear optimization problem. Therefore, it is computationally much slower than most other price indices. However, computation speed can be improved by using the Jacobian matrix for the optimization instead of deriving this matrix analytically during optimization. This can be achieved by changing the `settings` in `nlcpd()`.
+```{r}
+set.seed(123)
+dt.big <- rdata(R=50, B=1, N=30, gaps=0.25)
+
+# don't use jacobian matrix:
+system.time(m1 <- dt.big[, nlcpd(p=price, r=region, n=product, q=quantity,
+                              settings=list(use.jac=FALSE), simplify=FALSE,
+                              control=minpack.lm::nls.lm.control("maxiter"=200))])
+
+# use jacobian matrix:
+system.time(m2 <- dt.big[, nlcpd(p=price, r=region, n=product, q=quantity,
+                              settings=list(use.jac=TRUE), simplify=FALSE,
+                              control=minpack.lm::nls.lm.control("maxiter"=200))])
+
+# less computation time needed for m2, but same results as m1:
+all.equal(m1$par, m2$par, tol=1e-05)
+```
+
+As stated earlier, the CPD and NLCPD methods produce transitive price levels. This is also true when there are data gaps. Below, we introduce random gaps in the data `dt`, reestimate the CPD and NLCPD models, and test for transitivity. More precisely, we check if the direct price comparison between regions `2` and `1` is the same as the indirect comparison including region `3`, i.e., $\widehat{P}^{12} = \widehat{P}^{13} \cdot \widehat{P}^{32}$.
+```{r}
+# introduce 20% data gaps:
+set.seed(1)
+dt.gaps <- dt[!rgaps(r=region, n=product, amount=0.2)]
+
+# estimate CPD model using different base regions and check transitivity:
+P1.cpd <- dt.gaps[, cpd(p=price, r=region, n=product, q=quantity, base="1")]
+P3.cpd <- dt.gaps[, cpd(p=price, r=region, n=product, q=quantity, base="3")]
+all.equal(P1.cpd[2], P1.cpd[3]*P3.cpd[2], check.attributes=FALSE)
+
+# estimate NLCPD model using different base regions and check transitivity:
+P1.nlcpd <- dt.gaps[, nlcpd(p=price, r=region, n=product, q=quantity, base="1")]
+P3.nlcpd <- dt.gaps[, nlcpd(p=price, r=region, n=product, q=quantity, base="3")]
+all.equal(P1.nlcpd[2], P1.nlcpd[3]*P3.nlcpd[2], check.attributes=FALSE)
+```
+The results indicate that both the CPD method and the NLCPD method produce transitive price level estimates even when data gaps are present.
+
+## GEKS method
+
+The GEKS method [@Gini1924; @Gini1931; @Elteto1964; @Szulc1964] is a two-step approach. First, prices are aggregated into bilateral index numbers for every pair of regions in the data. Second, the bilateral index numbers are transformed into a set of transitive index numbers by estimating the linear regression model
+$$\ln \dot{P}^{sr} = \ln \left( P^r / P^s \right) + \ln \epsilon^{sr} \quad \text{with} \ \ln \epsilon^{sr} \sim N(0,\sigma^2) \ ,$$
+where $\dot{P}^{sr}$ is the bilateral price index for regions $s$ and $r$ computed in the first stage. For this computation any bilateral index could theoretically be used (and is supported in the `pricelevels`-package). @Rao1986, however, recommend that the bilateral price index satisfies the country reversal test. If, for example, the Jevons index is used in the computations, then it is more precise to denote the resulting index numbers as the GEKS-Jevons price index.
+```{r}
+# GEKS using Törnqvist:
+dt.gaps[, geks(p=price, r=region, n=product, q=quantity, settings=list(type="toernqvist"))]
+
+# GEKS using Jevons so quantities have no impact:
+dt.gaps[, geks(p=price, r=region, n=product, q=quantity, settings=list(type="jevons"))]
+```
+The `geks()`-function internally calls the function `index.pairs()` to compute the bilateral indices of all region pairs. The quantities `q` or weights `w` are used within this aggregation of prices into bilateral index numbers (first stage) while the subsequent transformation of these index numbers (second stage) usually does not rely on any weights (but can if specified in `settings$wmethod`). In this case, the solution to the regression model above simplifies to
+$$P_{\text{GEKS-J}}^{1r} = \prod_{s=1}^{R} \left( \dot{P}^{1s}_{\text{J}} \dot{P}^{sr}_{\text{J}} \right)^{1/R} \ ,$$
+if the Jevons index is used and region `1` serves as the base region [@ILO2020 p. 448].
+
+Again, the following checks show that the price index numbers derived with the GEKS-Törnqvist index are transitive:
+```{r}
+# estimate GEKS-Törnqvist using different base regions and 
+# applying weights in second aggregation stage:
+P1.geks <- dt.gaps[, geks(p=price, r=region, n=product, q=quantity, base="1",
+                          settings=list(type="toernqvist", wmethod="obs"))]
+P3.geks <- dt.gaps[, geks(p=price, r=region, n=product, q=quantity, base="3",
+                          settings=list(type="toernqvist", wmethod="obs"))]
+
+# check transitivity:
+all.equal(P1.geks[2], P1.geks[3]*P3.geks[2], check.attributes=FALSE)
+```
+
+## Multilateral systems of equations
+
+The following price indices belong to this very general class of multilateral price indices and are implemented in the `pricelevels`-package.
+
+- Geary-Khamis method `gkhamis()` proposed by  @Geary1958 and @Khamis1972;
+- Gerardi method `gerardi()` used by @Eurostat1978;
+- Rao method `rao()` proposed by @Rao1990;
+- Ikle-Dikhanov-Balk method `idb()` developed by @Ikle1972, @Dikhanov1994, and @Balk1996.
+
+All methods have in common that they set up a system of interrelated equations of international product prices and regional price levels, which must be solved iteratively. It is only the definition of the international product prices and the price levels that differ between the methods.
+
+The *Geary-Khamis method* defines the international average prices, $\pi_n$, as
+$$\pi_n = \frac{\sum_{r=1}^{R} q_n^r \left( p_n^r/ P^r \right)}{\sum_{r=1}^{R} q_n^r}$$
+for all products $n=1,\ldots,N$ and the regional price levels, $P^r$, as
+$$P^r = \frac{\sum_{n=1}^{N} p_n^r q_n^r}{\sum_{n=1}^{N} \pi_n q_n^r} = \left[ \sum_{n=1}^{N} w_n^r \left( p_n^r / \pi_n \right)^{-1} \right]^{-1}$$
+for all regions $r=1,\ldots,R$, where the weights $w_n^r= p_n^r q_n^r / \sum_{n=1}^{N} p_n^r q_n^r$ represent expenditure shares. This system of interrelated equations can be solved iteratively or analytically using matrix algebra [@Diewert1999]. Which approach is computationally faster depends on the data. 
+```{r}
+# sample data with gaps:
+set.seed(123)
+dt.big <- rdata(R=99, B=1, N=50, gaps=0.25)
+
+# iterative processing:
+system.time(m1 <- dt.big[, gkhamis(p=price, r=region, n=product, q=quantity,
+                                   settings=list(solve="iterative"))])
+
+# matrix algebra:
+system.time(m2 <- dt.big[, gkhamis(p=price, r=region, n=product, q=quantity,
+                                   settings=list(solve="matrix"))])
+
+# compare results:
+all.equal(m1, m2, tol=1e-05)
+```
+
+The *Gerardi index* and the *Iklé-Dikhanov-Balk (IDB) index* define the price levels exactly in the same way as the Geary-Khamis index. However, they define the international product prices differently. For the Gerardi index, the $\pi_n$'s are computed as simple geometric averages of the prices,
+$$\pi_n = \left( \prod_{r=1}^{R} p_i^r \right)^{1/R} \quad n=1,\ldots,N \ , $$
+while in the IDB index they rely on expenditure shares:
+$$\pi_n = \left[ \frac{\sum_{r=1}^{R} w_n^r \left( p_n^r / P^r \right)^{-1}}{\sum_{r=1}^{R} w_n^r} \right]^{-1} \quad n=1,\ldots,N \ . $$
+The IDB index uses the expenditure shares instead of quantity shares as the Geary-Khamis. Therefore, it suffers less from the *Gerschenkorn effect* as bigger countries do not receive more influence in the calculations than smaller countries. 
+
+In contrast to the Geary-Khamis index, the Gerardi and IDB indices can be computed with quantities $q_n^r$ *or* expenditure share weights $w_n^r$. This also applies to the *Rao index*, which derives the international product prices, $\pi_n \ (n=1,\ldots,N)$, and regional price levels, $P^r \ (r=1,\ldots,R)$, from the following system of interrelated equations:
+
+$$\pi_n = \prod_{r=1}^{R} \left( p_n^r / P^r \right)^{w_n^r / \sum_{s=1}^{R} w_n^s} \quad \text{and} \quad P^r = \prod_{n=1}^{N} \left( p_n^r / \pi_n \right)^{w_n^r} \ . $$ 
+Also the price indices belonging to this class of multilateral systems of equations produce transitive price levels.
+```{r}
+# Geary-Khamis index transitive:
+P1.gk <- dt.gaps[, gkhamis(p=price, r=region, n=product, q=quantity, base="1")]
+P3.gk <- dt.gaps[, gkhamis(p=price, r=region, n=product, q=quantity, base="3")]
+all.equal(P1.gk[2], P1.gk[3]*P3.gk[2], check.attributes=FALSE)
+
+# Rao index transitive:
+P1.rao <- dt.gaps[, rao(p=price, r=region, n=product, q=quantity, base="1")]
+P3.rao <- dt.gaps[, rao(p=price, r=region, n=product, q=quantity, base="3")]
+all.equal(P1.rao[2], P1.rao[3]*P3.rao[2], check.attributes=FALSE)
+```
+
+# Some further package features
+
+## Price indices with non-connected price data
+
+Bilateral price indices use solely the direct matches or links between two regions. Hence, indirect links between two regions via a third one are not taken into account. This is different for multilateral price indices, which make use of these indirect links. Consequently, the function output between these indices may differ.
+```{r}
+# example data:
+dt <- data.table(
+  "region"=rep(letters[1:5], c(3,3,7,4,4)),
+  "product"=as.character(c(1:3, 1:3, 1:7, 4:7, 4:7)))
+set.seed(123)
+dt[, "price":=rnorm(n=.N, mean=20, sd=2)]
+dt[, "quantity":=rnorm(n=.N, mean=999, sd=100)]
+
+# price matrix:
+with(dt, tapply(X=price, list(product, region), mean))
+```
+The price matrix shows that prices for products `1` to `3` are available in regions `a`, `b`, and `c`, while prices for products `4` to `7` were recorded in regions `c`, `d`, and `e`. Since in region `c` the prices are complete, the data are connected - either through direct or indirect regional links.
+```{r}
+dt[, is.connected(r=region, n=product)] # true
+```
+However, the price matrix also shows that there are no product matches for regions `a` and `d`, for example. Therefore, any bilateral price index between these two regions is not defined, while the multilateral price indices will provide a price level by taking into account the indirect link of regions `a` and `d` via region `c`.
+```{r}
+# bilateral jevons index:
+dt[, jevons(p=price, r=region, n=product, base="a")]
+
+# multilateral unweighted cpd index:
+dt[, cpd(p=price, r=region, n=product, base="a")]
+```
+If we now assume that there is no region `c`, the data will consist of two separate blocks of regions and, thus, become non-connected.
+```{r}
+# drop region 'c':
+dt2 <- dt[!region%in%"c",]
+
+# price matrix:
+with(dt2, tapply(X=price, list(product, region), mean))
+
+# check if connected:
+dt2[, is.connected(r=region, n=product)]
+```
+In this case, no price comparison involving all regions is possible. The price indices implemented in the `pricelevels`-package deal with this issue by using either the block of regions that includes the base region or the biggest block of regions for a price comparison on a subset of the data.
+```{r}
+# bilateral jevons index:
+dt2[, jevons(p=price, r=region, n=product, base="a")]
+
+# multilateral unweighted cpd index:
+dt2[, cpd(p=price, r=region, n=product, base="a")]
+```
+As can be seen, the two functions return the price levels for regions `a` and `b` only, while the price levels for regions `c` and `d` are set to `NA`. The functions also print a corresponding warning. All `pricelevels`-warnings can be suppressed in the settings if wanted.
+```{r}
+dt2[, cpd(p=price, r=region, n=product, base="a", settings=list(chatty=FALSE))]
+```
+Also the checking of connectedness can be suppressed. This can be useful in simulations or other cases when it is known that the data are connected. Of course, in our example this setting would result in an error.
+```{r, error=TRUE}
+dt2[, cpd(p=price, r=region, n=product, base="a", settings=list(connect=FALSE))]
+```
+If the data contains duplicated prices or missing values `NA`, these are removed before any calculations start. Prices and weights are averaged within each basic heading for each region and product, while quantities are summed up. Again, a corresponding warning message is returned.
+```{r}
+# example data:
+dt <- data.table(
+  "region"=c("a","a","a","b","b","b","b"),
+  "product"=as.character(c(1,1,2,1,1,2,2)))
+set.seed(123)
+dt[, "price":=rnorm(n=.N, mean=20, sd=2)]
+dt[, "quantity":=rnorm(n=.N, mean=999, sd=100)]
+dt[1, "price" := NA_real_]
+
+dt[, cpd(p=price, r=region, n=product)]
+```
+
+## Calculation of multiple price indices at once
+
+In some situations it is useful to compute the price levels of the regions using multiple price indices. This could be done by calculating, for example, the CPD index, the GEKS-Jevons index, and the Jevons index, separately using the corresponding package functions.
+```{r}
+# example data:
+set.seed(123)
+dt <- rdata(R=5, B=1, N=7, gaps=0.2)
+
+# cpd:
+dt[, cpd(p=price, r=region, n=product, base="1")]
+
+# geks-jevons:
+dt[, geks(p=price, r=region, n=product, base="1", setting=list(type="jevons"))]
+
+# jevons:
+dt[, jevons(p=price, r=region, n=product, base="1")]
+```
+However, this approach is not convenient and also not efficient as each price index function checks the same user inputs, removes the same missing values and duplicated observations, and connects the same data if needed. This can be time consuming for bigger datasets. The `pricelevels`-package therefore offers the `pricelevels()`-function, which can be used to efficiently calculate multiple price indices at once.
+```{r}
+dt[, pricelevels(p=price, r=region, n=product, base="1", settings=list(type=c("jevons","cpd","geks-jevons")))]
+```
+If the user wants to compute all unweighted price indices available in the `pricelevels`-package, this can be achieved by setting `settings$type=NULL`:
+```{r}
+dt[, pricelevels(p=price, r=region, n=product, base="1")]
+```
+Similarly, if there are quantities or weights available in the data, all weighted and unweighted price indices available in the `pricelevels`-package are computed at once:
+```{r}
+dt[, pricelevels(p=price, r=region, n=product, q=quantity, base="1")]
+```
+It is important to note that only the simplified output including the regions' price levels is returned. Moreover, the user has to provide a specific base region as bilateral indices do not allow a comparison to the average regional price level. However, any additional settings of some price index function (e.g., `settings$use.jac=TRUE` for `nlcpd()`) can be used in `pricelevels()` as well.
+
+# References

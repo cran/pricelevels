@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Sebastian Weinand" />
+
+<meta name="date" content="2024-02-07" />
+
+<title>Introduction to the pricelevels-package</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to the
+pricelevels-package</h1>
+<h4 class="author">Sebastian Weinand</h4>
+<h4 class="date">07 February 2024</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#price-data" id="toc-price-data">Price data</a>
+<ul>
+<li><a href="#characteristics" id="toc-characteristics">Characteristics</a>
+<ul>
+<li><a href="#connected-price-data" id="toc-connected-price-data">Connected price data</a></li>
+<li><a href="#non-connected-price-data" id="toc-non-connected-price-data">Non-connected price data</a></li>
+</ul></li>
+<li><a href="#simulation" id="toc-simulation">Simulation</a>
+<ul>
+<li><a href="#data-gaps" id="toc-data-gaps">Data gaps</a></li>
+<li><a href="#expenditure-weights" id="toc-expenditure-weights">Expenditure weights</a></li>
+<li><a href="#price-data-1" id="toc-price-data-1">Price data</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#bilateral-price-indices" id="toc-bilateral-price-indices">Bilateral price indices</a>
+<ul>
+<li><a href="#elementary-unweighted-indices" id="toc-elementary-unweighted-indices">Elementary (unweighted)
+indices</a></li>
+<li><a href="#unit-value-related-indices" id="toc-unit-value-related-indices">Unit value related indices</a></li>
+<li><a href="#quantity-or-expenditure-share-weighted-indices" id="toc-quantity-or-expenditure-share-weighted-indices">Quantity or
+expenditure share weighted indices</a></li>
+</ul></li>
+<li><a href="#multilateral-price-indices" id="toc-multilateral-price-indices">Multilateral price indices</a>
+<ul>
+<li><a href="#cpd-and-nlcpd-methods" id="toc-cpd-and-nlcpd-methods">CPD
+and NLCPD methods</a></li>
+<li><a href="#geks-method" id="toc-geks-method">GEKS method</a></li>
+<li><a href="#multilateral-systems-of-equations" id="toc-multilateral-systems-of-equations">Multilateral systems of
+equations</a></li>
+</ul></li>
+<li><a href="#some-further-package-features" id="toc-some-further-package-features">Some further package features</a>
+<ul>
+<li><a href="#price-indices-with-non-connected-price-data" id="toc-price-indices-with-non-connected-price-data">Price indices with
+non-connected price data</a></li>
+<li><a href="#calculation-of-multiple-price-indices-at-once" id="toc-calculation-of-multiple-price-indices-at-once">Calculation of
+multiple price indices at once</a></li>
+</ul></li>
+<li><a href="#references" id="toc-references">References</a></li>
+</ul>
+</div>
+
+<p><br /><br /> The <code>pricelevels</code>-package provides index number
+methods for price comparisons within or between countries. As price
+comparisons over time usually rely on the same index number methods, the
+package has been denoted more generally as <code>pricelevels</code>,
+though its primary focus is on spatial price comparisons. Currently, the
+following index number methods (or price indices) are implemented.</p>
+<ol style="list-style-type: decimal">
+<li><strong>Bilateral price indices</strong>:
+<ul>
+<li>Elementary (unweighted) indices:
+<ul>
+<li>Jevons: <code>jevons()</code></li>
+<li>Dutot: <code>dutot()</code></li>
+<li>Carli: <code>carli()</code></li>
+<li>Harmonic: <code>harmonic()</code></li>
+<li>BMW: <code>bmw()</code></li>
+<li>CSWD: <code>cswd()</code></li>
+</ul></li>
+<li>Unit value related indices:
+<ul>
+<li>Unit value index: <code>uvalue()</code></li>
+<li>Banerjee: <code>banerjee()</code></li>
+<li>Davies: <code>davies()</code></li>
+<li>Lehr: <code>lehr()</code></li>
+</ul></li>
+<li>Quantity or expenditure share weighted indices:
+<ul>
+<li>(Geometric) Laspeyres: <code>laspeyres()</code> and
+<code>geolaspeyres()</code></li>
+<li>(Geometric) Paasche: <code>paasche()</code> and
+<code>geopaasche()</code></li>
+<li>Fisher: <code>fisher()</code></li>
+<li>Toernqvist: <code>toernqvist()</code></li>
+<li>(Geometric) Walsh: <code>walsh()</code> and
+<code>geowalsh()</code></li>
+<li>Theil: <code>theil()</code></li>
+<li>Marshall-Edgeworth: <code>medgeworth()</code></li>
+<li>Palgrave: <code>palgrave()</code></li>
+<li>Sato-Vartia: <code>svartia()</code></li>
+<li>Drobisch: <code>drobisch()</code></li>
+<li>Lowe: <code>lowe()</code></li>
+<li>Young: <code>young()</code></li>
+</ul></li>
+</ul></li>
+<li><strong>Multilateral price indices</strong>:
+<ul>
+<li>CPD and NLCPD methods: <code>cpd()</code> and
+<code>nlcpd()</code></li>
+<li>GEKS method: <code>geks()</code></li>
+<li>Multilateral systems of equations:
+<ul>
+<li>Geary-Khamis: <code>gkhamis()</code></li>
+<li>Iklé-Dikhanov-Balk: <code>idb()</code></li>
+<li>Gerardi: <code>gerardi()</code></li>
+<li>Rao: <code>rao()</code></li>
+</ul></li>
+</ul></li>
+</ol>
+<p>Moreover, the package offers functions for sampling and
+characterizing price data. This vignette highlights the main package
+features. It contains four sections. The first is on price data, the
+second on bilateral indices, and the third on multilateral indices. The
+last section section is on some further package features.</p>
+<p>The <code>pricelevels</code>-functions are designed based on
+<code>R</code>’s <a href="https://CRAN.R-project.org/package=data.table"><code>data.table</code></a>-package.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(pricelevels) <span class="co"># load package</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(data.table) <span class="co"># load data.table-package</span></span></code></pre></div>
+<div id="price-data" class="section level1">
+<h1>Price data</h1>
+<p>Data for spatial price comparisons usually have three dimensions:</p>
+<ul>
+<li>the <em>region</em> <span class="math inline">\((r=1,\ldots,R)\)</span>, which can be a country,
+city, or any other regional entity,</li>
+<li>the <em>basic heading</em> <span class="math inline">\((b=1,\ldots,B)\)</span>, which is a group of
+similar products for which expenditure weights, <span class="math inline">\(w_{b}\)</span> or <span class="math inline">\(w_{b}^{r}\)</span>, are available,</li>
+<li>and the <em>individual product</em> <span class="math inline">\((n=1,\ldots,N_b)\)</span>, for which prices <span class="math inline">\(p_{bn}^r\)</span> are recorded.</li>
+</ul>
+<p>For transaction and supermarket scanner data, purchased quantities
+<span class="math inline">\(q_{bn}^r\)</span> of the individual products
+are often available.</p>
+<p>Having such detailed data can pose some additional challenges. Not
+every individual product might be available in each region. Hence, there
+are gaps in the data. In the worst case these gaps can result in
+<em>non-connected</em> price data <span class="citation">(World Bank
+2013, 98)</span>, where price level comparisons of all regions are no
+longer possible.</p>
+<div id="characteristics" class="section level2">
+<h2>Characteristics</h2>
+<p>The <code>pricelevels</code>-package offers various functions to
+characterize price data and to deal with the issue of data gaps. As a
+first step, it’s good to check the sparsity (<em>share of gaps</em>) of
+a dataset and if the dataset is connected.</p>
+<div id="connected-price-data" class="section level3">
+<h3>Connected price data</h3>
+<p>Suppose we have prices for 5 products (all belonging to the same
+basic heading) in 4 regions. These data are stored in the data.table
+<code>dt</code>. Transforming <code>dt</code> into a price matrix (rows:
+products; columns: regions) shows that the data exhibit gaps as products
+<code>4</code> and <code>5</code> are not priced in regions
+<code>c</code> and <code>d</code>, respectively.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># example price data with gaps:</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fu">data.table</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="st">&quot;r&quot;</span><span class="ot">=</span><span class="fu">c</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;a&quot;</span>,<span class="st">&quot;b&quot;</span>), <span class="at">each=</span><span class="dv">5</span>), <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;c&quot;</span>,<span class="st">&quot;d&quot;</span>), <span class="at">each=</span><span class="dv">3</span>)),</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="st">&quot;n&quot;</span><span class="ot">=</span><span class="fu">as.character</span>(<span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">2</span>), <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">2</span>))),</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="st">&quot;p&quot;</span><span class="ot">=</span><span class="fu">round</span>(<span class="fu">runif</span>(<span class="dv">16</span>, <span class="at">min=</span><span class="dv">10</span>, <span class="at">max=</span><span class="dv">20</span>), <span class="dv">1</span>))</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co"># price matrix:</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>dt[, <span class="fu">tapply</span>(<span class="at">X=</span>p, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt;      a    b    c    d</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 1 13.7 17.9 17.3 12.2</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; 2 15.7 19.7 17.1 12.6</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; 3 15.6 12.1 17.9 16.5</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt; 4 10.5 12.5   NA   NA</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; 5 11.9 16.1   NA   NA</span></span></code></pre></div>
+<p>Due to the gaps, the <code>sparsity()</code> of this dataset is
+greater 0. As there are only a few gaps, however, function
+<code>is.connected()</code> indicates that the dataset is connected. The
+function <code>comparisons()</code> provides some further details. It
+shows that all four regions form one ‘block of connected regions’ since
+they are connected via direct or indirect links. Moreover, the function
+output highlights that each region can be directly compared with the
+other regions using at least one price ratio.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>dt[, <span class="fu">sparsity</span>(<span class="at">r=</span>r, <span class="at">n=</span>n)] <span class="co"># sparsity</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.2</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>dt[, <span class="fu">is.connected</span>(<span class="at">r=</span>r, <span class="at">n=</span>n)] <span class="co"># is connected</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>dt[, <span class="fu">comparisons</span>(<span class="at">r=</span>r, <span class="at">n=</span>n)] <span class="co"># one group of regions</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; Key: &lt;group_id&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt;    group_id group_members group_size total direct indirect n_obs</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt;        &lt;char&gt;      &lt;int&gt; &lt;int&gt;  &lt;int&gt;    &lt;int&gt; &lt;int&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; 1:        1       a;b;c;d          4     6      0        6    16</span></span></code></pre></div>
+</div>
+<div id="non-connected-price-data" class="section level3">
+<h3>Non-connected price data</h3>
+<p>Let’s assume now that prices for products <code>1</code>,
+<code>2</code>, and <code>3</code> are no longer available in regions
+<code>a</code> and <code>b</code> (for example because these products
+are not sold there anymore). This situation is captured in data.table
+<code>dt2</code>. In total, the price data still include 4 regions and 5
+products. However, the price matrix reveals that the pattern of gaps
+changed.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># non-connected example price data:</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>dt2 <span class="ot">&lt;-</span> dt[<span class="sc">!</span>(n<span class="sc">%in%</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span> <span class="sc">&amp;</span> r<span class="sc">%in%</span><span class="fu">c</span>(<span class="st">&quot;a&quot;</span>,<span class="st">&quot;b&quot;</span>)),]</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># price matrix:</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>dt2[, <span class="fu">tapply</span>(<span class="at">X=</span>p, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt;      a    b    c    d</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; 1   NA   NA 17.3 12.2</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; 2   NA   NA 17.1 12.6</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; 3   NA   NA 17.9 16.5</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; 4 10.5 12.5   NA   NA</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; 5 11.9 16.1   NA   NA</span></span></code></pre></div>
+<p>The sparsity increased to 0.5. Even worse, the dataset is no longer
+connected. This can be easily seen from the price matrix, where regions
+<code>a</code> and <code>b</code> form one block of connected regions,
+and regions <code>c</code> and <code>d</code> another but separate
+block. This is also highlighted in the output of
+<code>comparisons()</code>, which now has two rows.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>dt2[, <span class="fu">sparsity</span>(<span class="at">r=</span>r, <span class="at">n=</span>n)] <span class="co"># sparsity</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.5</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>dt2[, <span class="fu">is.connected</span>(<span class="at">r=</span>r, <span class="at">n=</span>n)] <span class="co"># is not connected</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>dt2[, <span class="fu">comparisons</span>(<span class="at">r=</span>r, <span class="at">n=</span>n)] <span class="co"># two groups of regions</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; Key: &lt;group_id&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;    group_id group_members group_size total direct indirect n_obs</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt;        &lt;char&gt;      &lt;int&gt; &lt;int&gt;  &lt;int&gt;    &lt;int&gt; &lt;int&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; 1:        1           a;b          2     1      0        1     4</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; 2:        2           c;d          2     1      0        1     6</span></span></code></pre></div>
+<p>The fact that the dataset <code>dt2</code> is not connected does not
+mean that no price comparison is possible. It only means that a price
+comparison of <em>all</em> regions cannot be done. The function output
+of <code>comparisons()</code> shows that separate price comparisons
+within each block of regions could be done. However, it is clear that a
+comparison of the price levels between the two blocks is still not
+possible. To follow this approach, the regions in <code>dt2</code> can
+be classified into blocks of connected regions using the function
+<code>neighbors()</code>. Otherwise, if one wants to carry out the price
+comparison only for the biggest block of connected regions,
+<code>dt2</code> can be connected using function <code>connect()</code>,
+as shown below.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># group regions into groups of connected regions:</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>dt2[, <span class="st">&quot;block&quot;</span> <span class="sc">:=</span> <span class="fu">neighbors</span>(<span class="at">r=</span>r, <span class="at">n=</span>n, <span class="at">simplify=</span><span class="cn">TRUE</span>)]</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>dt2[, <span class="fu">is.connected</span>(<span class="at">r=</span>r, <span class="at">n=</span>n), by<span class="ot">=</span><span class="st">&quot;block&quot;</span>]</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt;     block     V1</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt;    &lt;fctr&gt; &lt;lgcl&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; 1:      1   TRUE</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; 2:      2   TRUE</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co"># subset to biggest group of connected regions:</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>dt2[<span class="fu">connect</span>(<span class="at">r=</span>r, <span class="at">n=</span>n), <span class="fu">is.connected</span>(<span class="at">r=</span>r, <span class="at">n=</span>n)]</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>Both approaches allow to perform a price comparison on a subset of
+the data by excluding some regions.</p>
+</div>
+</div>
+<div id="simulation" class="section level2">
+<h2>Simulation</h2>
+<p>The quality of price data is of utmost importance for the reliability
+of a regional price comparison. To assess the impact of gaps on the
+reliability of price index numbers, it is helpful to control the amount
+of gaps in the price data. At the same time, however, it must be ensured
+that the price data stay connected. A simplistic approach of simulating
+price data would not guarantee this. Therefore, the
+<code>pricelevels</code>-package offers some functions for data
+sampling.</p>
+<p>In the following, we want to simulate random price data for 5
+products within the same basic heading in 4 regions. This can be easily
+achieved if there are no data gaps. First, products and regions are
+sampled. Second, random prices are added.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>R <span class="ot">&lt;-</span> <span class="dv">4</span> <span class="co"># number of regions</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="co"># number of products</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># set frame:</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fu">data.table</span>(<span class="st">&quot;r&quot;</span><span class="ot">=</span><span class="fu">as.character</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>R, <span class="at">each=</span>N)),</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>                 <span class="st">&quot;n&quot;</span><span class="ot">=</span><span class="fu">as.character</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>N, <span class="at">times=</span>R)))</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co"># add random prices:</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>dt[, <span class="st">&quot;p&quot;</span><span class="sc">:=</span><span class="fu">round</span>(<span class="at">x=</span><span class="fu">rnorm</span>(<span class="at">n=</span>.N, <span class="at">mean=</span><span class="fu">as.integer</span>(n), <span class="at">sd=</span><span class="fl">0.1</span>), <span class="at">digits=</span><span class="dv">1</span>)]</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co"># price matrix:</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>dt[, <span class="fu">tapply</span>(<span class="at">X=</span>p, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt;     1   2   3   4</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; 1 0.9 0.9 1.2 1.0</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; 2 2.0 2.0 2.0 2.0</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt; 3 2.9 3.1 2.9 3.1</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt; 4 4.2 4.1 3.8 4.1</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="co">#&gt; 5 5.0 5.0 5.1 5.1</span></span></code></pre></div>
+<div id="data-gaps" class="section level3">
+<h3>Data gaps</h3>
+<p>It is clear that the price data <code>dt</code> are connected.
+However, to get more realistic data, we have to introduce gaps. This can
+be done randomly as well. If there are only few gaps, the likelihood to
+end up with non-connected price data is relatively low. However, with
+more gaps, it can happen that the resulting price data are no longer
+connected. To overcome this issue, the function <code>rgaps()</code>
+introduces gaps into an existing (complete) dataset while ensuring that
+the data stay connected. In the following, we introduce approx. 20% gaps
+into the price data <code>dt</code>.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># introduce gaps:</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>dt.gaps <span class="ot">&lt;-</span> dt[<span class="sc">!</span><span class="fu">rgaps</span>(<span class="at">r=</span>r, <span class="at">n=</span>n, <span class="at">amount=</span><span class="fl">0.2</span>), ]</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co"># price matrix:</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>dt.gaps[, <span class="fu">tapply</span>(<span class="at">X=</span>p, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;     1   2   3   4</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; 1  NA 0.9 1.2 1.0</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; 2 2.0 2.0 2.0 2.0</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; 3 2.9 3.1 2.9 3.1</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; 4 4.2  NA 3.8  NA</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; 5 5.0  NA 5.1 5.1</span></span></code></pre></div>
+<p>From the price matrix, we see that there is no price for product
+<code>1</code> in region <code>1</code>. The
+<code>rgaps()</code>-function also allows to exclude specific regions
+and/or products from the sampling of gaps. If we want, for example, that
+there are generally no gaps in region <code>1</code>, we can implement
+this as follows:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># introduce gaps but not for region 1:</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>dt.gaps <span class="ot">&lt;-</span> dt[<span class="sc">!</span><span class="fu">rgaps</span>(<span class="at">r=</span>r, <span class="at">n=</span>n, <span class="at">amount=</span><span class="fl">0.2</span>, <span class="at">exclude=</span><span class="fu">data.frame</span>(<span class="at">r=</span><span class="st">&quot;1&quot;</span>, <span class="at">n=</span><span class="cn">NA</span>)), ]</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co"># price matrix:</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>dt.gaps[, <span class="fu">tapply</span>(<span class="at">X=</span>p, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;     1   2   3   4</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; 1 0.9 0.9 1.2  NA</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; 2 2.0 2.0 2.0 2.0</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; 3 2.9 3.1 2.9 3.1</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; 4 4.2  NA 3.8  NA</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; 5 5.0  NA 5.1 5.1</span></span></code></pre></div>
+<p>We see from the price matrix that no price is missing in region
+<code>1</code>.</p>
+<p>If the gaps should occur with a higher likelihood for specific
+regions and/or products, this can be defined as well. The
+<code>prob</code>-argument in <code>rgaps()</code> allows to specify for
+each observation the (relative) likelihood that gaps occur at this
+position in the data. In the following example, gaps will occur more
+often for products <code>4</code> and <code>5</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># introduce gaps with probability:</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>dt.gaps <span class="ot">&lt;-</span> dt[<span class="sc">!</span><span class="fu">rgaps</span>(<span class="at">r=</span>r, <span class="at">n=</span>n, <span class="at">amount=</span><span class="fl">0.2</span>, <span class="at">prob=</span><span class="fu">as.integer</span>(n)<span class="sc">^</span><span class="dv">2</span>), ]</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co"># price matrix:</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>dt.gaps[, <span class="fu">tapply</span>(<span class="at">X=</span>p, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt;     1   2   3   4</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; 1 0.9 0.9 1.2 1.0</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; 2 2.0 2.0 2.0 2.0</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; 3 2.9 3.1 2.9 3.1</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; 4  NA  NA 3.8 4.1</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; 5  NA 5.0 5.1  NA</span></span></code></pre></div>
+</div>
+<div id="expenditure-weights" class="section level3">
+<h3>Expenditure weights</h3>
+<p>The price data in <code>dt</code> represent the data that statistical
+offices usually collect as quantities or weights on individual products
+are not available. However, transaction data often include purchased
+quantities while data at the basic heading level exhibit expenditure
+weights as an indication of the relative importance for household
+consumption.</p>
+<p>As the purchased quantities can be expected to heavily depend on the
+prices of products, there is no stand-alone function for the sampling of
+random quantities. However, random expenditure weights for basic
+headings can be added to some dataset using the function
+<code>rweights()</code>. These weights can be the same for each basic
+heading in each region, differ across basic headings but are the same
+for each region, or differ across basic headings and regions. This is
+shown below, where we sample the weights for the individual products
+(and not basic headings):</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># constant expenditure weights:</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>dt.gaps[, <span class="st">&quot;w1&quot;</span> <span class="sc">:=</span> <span class="fu">rweights</span>(<span class="at">r=</span>r, <span class="at">b=</span>n, <span class="at">type=</span><span class="sc">~</span><span class="dv">1</span>)]</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>dt.gaps[, <span class="fu">tapply</span>(<span class="at">X=</span>w1, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co">#&gt;     1   2   3   4</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co">#&gt; 1 0.2 0.2 0.2 0.2</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co">#&gt; 2 0.2 0.2 0.2 0.2</span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co">#&gt; 3 0.2 0.2 0.2 0.2</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="co">#&gt; 4  NA  NA 0.2 0.2</span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt; 5  NA 0.2 0.2  NA</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co"># weights different for basic headings but same among regions:</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>dt.gaps[, <span class="st">&quot;w2&quot;</span> <span class="sc">:=</span> <span class="fu">rweights</span>(<span class="at">r=</span>r, <span class="at">b=</span>n, <span class="at">type=</span><span class="sc">~</span>n)]</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>dt.gaps[, <span class="fu">tapply</span>(<span class="at">X=</span>w2, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;            1          2          3          4</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt; 1 0.19621397 0.19621397 0.19621397 0.19621397</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt; 2 0.08129106 0.08129106 0.08129106 0.08129106</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; 3 0.50029883 0.50029883 0.50029883 0.50029883</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; 4         NA         NA 0.05927477 0.05927477</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; 5         NA 0.16292136 0.16292136         NA</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co"># weights different for basic headings and regions:</span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a>dt.gaps[, <span class="st">&quot;w3&quot;</span> <span class="sc">:=</span> <span class="fu">rweights</span>(<span class="at">r=</span>r, <span class="at">b=</span>n, <span class="at">type=</span><span class="sc">~</span>n<span class="sc">+</span>r)]</span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a>dt.gaps[, <span class="fu">tapply</span>(<span class="at">X=</span>w3, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt;            1          2          3          4</span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt; 1 0.01418186 0.01418186 0.01418186 0.01418186</span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="co">#&gt; 2 0.40005184 0.40005184 0.40005184 0.40005184</span></span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="co">#&gt; 3 0.12417969 0.12417969 0.12417969 0.12417969</span></span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="co">#&gt; 4         NA         NA 0.33378579 0.33378579</span></span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="co">#&gt; 5         NA 0.12780082 0.12780082         NA</span></span></code></pre></div>
+<p>If there are no gaps in the data, the weights always add up to 1.
+With gaps, however, the <code>type</code> of weights is prioritized,
+meaning that constant weights remain constant even though a
+renormalization would have led to different weights across basic heading
+and regions. Therefore, the weights do not necessarily add up to 1 in
+each region. Of course, the weights can easily be renormalized if
+necessary.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># weights not necessarily add up to 1 if there are gaps:</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>dt.gaps[, <span class="fu">list</span>(<span class="st">&quot;w1&quot;</span><span class="ot">=</span><span class="fu">sum</span>(w1),<span class="st">&quot;w2&quot;</span><span class="ot">=</span><span class="fu">sum</span>(w2),<span class="st">&quot;w3&quot;</span><span class="ot">=</span><span class="fu">sum</span>(w3)), by<span class="ot">=</span><span class="st">&quot;r&quot;</span>]</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt;         r    w1        w2        w3</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt;    &lt;char&gt; &lt;num&gt;     &lt;num&gt;     &lt;num&gt;</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; 1:      1   0.6 0.7778039 0.5384134</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt; 2:      2   0.8 0.9407252 0.6662142</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt; 3:      3   1.0 1.0000000 1.0000000</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; 4:      4   0.8 0.8370786 0.8721992</span></span></code></pre></div>
+</div>
+<div id="price-data-1" class="section level3">
+<h3>Price data</h3>
+<p>The previous steps to simulate random price data are put together in
+the function <code>rdata()</code>. This function easily simulates random
+price data for a specified number of regions, basic headings, and
+individual products including gaps and weights. However, beside this
+easier usage, there are some additional benefits:</p>
+<ul>
+<li>Prices <em>and</em> quantities for each individual product are
+simulated.</li>
+<li>Sales can be introduced. Some prices and quantities are adjusted by
+a random factor. The sales are flagged in the data.</li>
+<li>The generation of prices follows a more sophisticated model (see
+also the NLCPD method below): <span class="math display">\[\begin{equation}
+p_{bn}^r = \pi_{bn} \ (P^r)^{\delta_{bn}} \ u_{bn}^r \ ,
+\end{equation}\]</span> where the price of product <span class="math inline">\(n\)</span> in region <span class="math inline">\(r\)</span>, <span class="math inline">\(p_{bn}^r\)</span>, is explained by the general
+product price, <span class="math inline">\(\pi_{bn}\)</span>, the
+product-specific elasticities <span class="math inline">\(\delta_{bn}\)</span>, and the regional price
+level, <span class="math inline">\(P^r\)</span>. The error term <span class="math inline">\(u_{bn}^r\)</span> follows a lognormal
+distribution.</li>
+<li>The parameters used for the data generating process (i.e., the model
+above) are stored by <code>rdata()</code> and can be added to the
+function output if desired. This is particularly useful for simulations
+where some calculated price levels are compared to the ‘true’ price
+levels underlying the data generation.</li>
+</ul>
+<p>The following code snippet shows how easily a connected price dataset
+with gaps, sales and expenditure weights for <span class="math inline">\(B=4\)</span> basic headings with <span class="math inline">\(N_b=(2,2,3,3)\)</span> products in <span class="math inline">\(R=9\)</span> regions can be simulated.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># simulate random price data:</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>srp <span class="ot">&lt;-</span> <span class="fu">rdata</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">R=</span><span class="dv">9</span>, <span class="co"># number of regions</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="at">B=</span><span class="dv">4</span>, <span class="co"># number of product groups</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="at">N=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">3</span>), <span class="co"># number of individual products per basic heading</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">gaps=</span><span class="fl">0.2</span>, <span class="co"># share of gaps</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="at">weights=</span><span class="sc">~</span>b, <span class="co"># same varying expenditure weights for regions</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  <span class="at">sales=</span><span class="fl">0.1</span>, <span class="co"># share of sales</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="at">settings=</span><span class="fu">list</span>(<span class="at">par.add=</span><span class="cn">TRUE</span>) <span class="co"># add true parameters to function output</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>  )</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co"># true parameters:</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>srp<span class="sc">$</span>param</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt; $lnP</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt;           1           2           3           4           5           6 </span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt;  0.01351101 -0.06729194 -0.03758062 -0.02719543 -0.13336083  0.11908720 </span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt;           7           8           9 </span></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt;  0.05064581 -0.07850519  0.16068999 </span></span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a><span class="co">#&gt; $pi</span></span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a><span class="co">#&gt;       01       02       03       04       05       06       07       08 </span></span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="co">#&gt; 2.151639 2.109964 1.372202 1.754044 5.870784 5.714721 5.906962 1.797949 </span></span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="co">#&gt;       09       10 </span></span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="co">#&gt; 1.728033 1.619993 </span></span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a><span class="co">#&gt; $delta</span></span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co">#&gt;         01         02         03         04         05         06         07 </span></span>
+<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a><span class="co">#&gt;  1.2247660  1.2530426  1.0527690  0.5926094  2.2100173  1.3200648 -0.3813724 </span></span>
+<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a><span class="co">#&gt;         08         09         10 </span></span>
+<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a><span class="co">#&gt;  1.4605623  0.6499459  0.2391432</span></span>
+<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a></span>
+<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a><span class="co"># price data:</span></span>
+<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a><span class="fu">head</span>(srp<span class="sc">$</span>data)</span>
+<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a><span class="co">#&gt; Key: &lt;group, product, region&gt;</span></span>
+<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a><span class="co">#&gt;     group     weight region product   sale price quantity</span></span>
+<span id="cb13-37"><a href="#cb13-37" tabindex="-1"></a><span class="co">#&gt;    &lt;fctr&gt;      &lt;num&gt; &lt;fctr&gt;  &lt;fctr&gt; &lt;lgcl&gt; &lt;num&gt;    &lt;num&gt;</span></span>
+<span id="cb13-38"><a href="#cb13-38" tabindex="-1"></a><span class="co">#&gt; 1:      1 0.07939543      1      01   TRUE  8.13    53705</span></span>
+<span id="cb13-39"><a href="#cb13-39" tabindex="-1"></a><span class="co">#&gt; 2:      1 0.07939543      2      01  FALSE  7.90     9765</span></span>
+<span id="cb13-40"><a href="#cb13-40" tabindex="-1"></a><span class="co">#&gt; 3:      1 0.07939543      3      01  FALSE  8.29    10992</span></span>
+<span id="cb13-41"><a href="#cb13-41" tabindex="-1"></a><span class="co">#&gt; 4:      1 0.07939543      5      01  FALSE  7.36     9829</span></span>
+<span id="cb13-42"><a href="#cb13-42" tabindex="-1"></a><span class="co">#&gt; 5:      1 0.07939543      6      01  FALSE 10.02    38338</span></span>
+<span id="cb13-43"><a href="#cb13-43" tabindex="-1"></a><span class="co">#&gt; 6:      1 0.07939543      7      01  FALSE  9.20    22230</span></span></code></pre></div>
+<p><img src="data:image/png;base64,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" style="display: block; margin: auto;" /></p>
+<p>The graph shows that the individual products’ prices vary across
+regions and within the basic heading. However, while they are at similar
+levels within the same basic heading, they can considerably differ
+between basic headings.</p>
+</div>
+</div>
+</div>
+<div id="bilateral-price-indices" class="section level1">
+<h1>Bilateral price indices</h1>
+<p>Bilateral price indices compute the overall price level difference
+between two regions. For that purpose, the prices of individual products
+available in both regions are aggregated into a price index showing the
+price level difference of the <em>comparison region</em> relative to the
+<em>base region</em>. If quantities, expenditure shares, or any other
+sort of information on economic importance are available, these data can
+serve as weights in the aggregation. Otherwise, prices must be
+aggregated without any weights. Both approaches are shown in the
+following examples, where price data for four products belonging to the
+same basic heading were collected in five regions.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># simulate random price data:</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fu">rdata</span>(<span class="at">R=</span><span class="dv">5</span>, <span class="at">B=</span><span class="dv">1</span>, <span class="at">N=</span><span class="dv">4</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="fu">head</span>(dt)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co">#&gt; Key: &lt;group, product, region&gt;</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt;     group weight region product   sale price quantity</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt;    &lt;fctr&gt;  &lt;num&gt; &lt;fctr&gt;  &lt;fctr&gt; &lt;lgcl&gt; &lt;num&gt;    &lt;num&gt;</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt; 1:      1      1      1       1  FALSE 17.81    14529</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; 2:      1      1      2       1  FALSE 17.48   102595</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt; 3:      1      1      3       1  FALSE 17.22    76664</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; 4:      1      1      4       1  FALSE 20.07   127831</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; 5:      1      1      5       1  FALSE 15.53   157119</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt; 6:      1      1      1       2  FALSE 20.79    18665</span></span></code></pre></div>
+<div id="elementary-unweighted-indices" class="section level2">
+<h2>Elementary (unweighted) indices</h2>
+<p>If prices are collected by statistical offices locally (<em>local or
+field-based price collection</em>), quantities or any other information
+of the economic importance of the individual products are usually
+lacking. Therefore, the prices must be aggregated without any weights.
+The most prominent <em>elementary price indices</em> are implemented in
+the <code>pricelevels</code>-package:</p>
+<ul>
+<li>Carli index <span class="citation">(Carli 1804)</span>: <span class="math display">\[P_{\text{Carli}}^{sr} = \frac{1}{N}
+\sum_{n=1}^{N} p_n^r / p_n^s\]</span></li>
+<li>Jevons index <span class="citation">(Jevons 1865)</span>: <span class="math display">\[P_{\text{Jevons}}^{sr} = \prod_{n=1}^{N} \left(
+p_n^r / p_n^s \right)^{1/N}\]</span></li>
+<li>Harmonic mean index <span class="citation">(Jevons 1865; Coggeshall
+1886)</span>: <span class="math display">\[P_{\text{Harmonic}}^{sr} =
+\frac{N}{\sum_{n=1}^{N} p_n^s / p_n^r}\]</span></li>
+<li>Dutot index <span class="citation">(Dutot 1738)</span>: <span class="math display">\[P_{\text{Dutot}}^{sr} = \frac{\sum_{n=1}^{N}
+p_n^r}{\sum_{n=1}^{N} p_n^s}\]</span></li>
+<li>BMW index <span class="citation">(Balk 2005; Mehrhoff 2007)</span>:
+<span class="math display">\[P^{sr}_{\text{BMW}} = \frac{\sum_{n=1}^N
+\sqrt{p_n^r / p_n^s} }{ \sum_{n=1}^{N} \sqrt{p_n^s / p_n^r}
+}\]</span></li>
+<li>CSWD index <span class="citation">(Carruthers, Sellwood, and Ward
+1980; Dalén 1992)</span>: <span class="math display">\[P_{\text{CSWD}}^{sr} =
+\sqrt{P_{\text{Carli}}^{sr} \ P_{\text{Harmonic}}^{sr}} \
+,\]</span></li>
+</ul>
+<p>where the indices express the prices of each region <span class="math inline">\(r\)</span> relative to the base region <span class="math inline">\(s\)</span> based on the prices of the individual
+products <span class="math inline">\(n
+\left(n=1,\ldots,N\right)\)</span>.</p>
+<p>If we want to compare the prices of each region in the data
+<code>dt</code> to those in region <code>1</code> using the Jevons
+index, we can set region <code>1</code> as the base region in the
+function <code>jevons()</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>dt[, <span class="fu">jevons</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; 1.0000000 0.9995577 0.9924891 1.0624618 0.9397925</span></span></code></pre></div>
+<p>Similarly, we can compute the price index numbers relative the base
+region <code>2</code> using the Dutot index:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>dt[, <span class="fu">dutot</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;2&quot;</span>)]</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="co">#&gt; 1.0002609 1.0000000 0.9932159 1.0627528 0.9419439</span></span></code></pre></div>
+<p>The price comparison of each region relative to region <code>2</code>
+are carried out separately (or bilaterally). Each bilateral price
+comparison thus relies solely on the prices of the two regions that are
+compared. This is the rationale of bilateral price indices. However, it
+also results in some undesirable properties.</p>
+<p>A price comparison of region <code>2</code> to <code>1</code> should
+generally give the same result as the reciprocal of the price comparison
+of region <code>1</code> to <code>2</code>. This requirement is denoted
+as the <em>country reversal test</em>. However, as shown below, only the
+Jevons index and the Dutot index comply with this requirement for the
+considered dataset.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># harmonic mean index fails:</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">all.equal</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a> dt[, <span class="fu">harmonic</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)][<span class="dv">2</span>],</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a> <span class="dv">1</span><span class="sc">/</span>dt[, <span class="fu">harmonic</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;2&quot;</span>)][<span class="dv">1</span>],</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a> <span class="at">check.attributes=</span><span class="cn">FALSE</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Mean relative difference: 0.0001990829&quot;</span></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a><span class="co"># carli fails:</span></span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a><span class="fu">all.equal</span>(</span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a> dt[, <span class="fu">carli</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)][<span class="dv">2</span>],</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a> <span class="dv">1</span><span class="sc">/</span>dt[, <span class="fu">carli</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;2&quot;</span>)][<span class="dv">1</span>],</span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a> <span class="at">check.attributes=</span><span class="cn">FALSE</span>)</span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Mean relative difference: 0.0001990433&quot;</span></span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a></span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a><span class="co"># jevons index ok:</span></span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a><span class="fu">all.equal</span>(</span>
+<span id="cb17-17"><a href="#cb17-17" tabindex="-1"></a> dt[, <span class="fu">jevons</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)][<span class="dv">2</span>],</span>
+<span id="cb17-18"><a href="#cb17-18" tabindex="-1"></a> <span class="dv">1</span><span class="sc">/</span>dt[, <span class="fu">jevons</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;2&quot;</span>)][<span class="dv">1</span>],</span>
+<span id="cb17-19"><a href="#cb17-19" tabindex="-1"></a> <span class="at">check.attributes=</span><span class="cn">FALSE</span>)</span>
+<span id="cb17-20"><a href="#cb17-20" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb17-21"><a href="#cb17-21" tabindex="-1"></a></span>
+<span id="cb17-22"><a href="#cb17-22" tabindex="-1"></a><span class="co"># dutot index ok:</span></span>
+<span id="cb17-23"><a href="#cb17-23" tabindex="-1"></a><span class="fu">all.equal</span>(</span>
+<span id="cb17-24"><a href="#cb17-24" tabindex="-1"></a> dt[, <span class="fu">dutot</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)][<span class="dv">2</span>],</span>
+<span id="cb17-25"><a href="#cb17-25" tabindex="-1"></a> <span class="dv">1</span><span class="sc">/</span>dt[, <span class="fu">dutot</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;2&quot;</span>)][<span class="dv">1</span>],</span>
+<span id="cb17-26"><a href="#cb17-26" tabindex="-1"></a> <span class="at">check.attributes=</span><span class="cn">FALSE</span>)</span>
+<span id="cb17-27"><a href="#cb17-27" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>The resulting price index numbers of the Carli index and the Harmonic
+mean index depend on the choice of the base region. Consequently, if one
+changes the base region also the regional price level differences
+change.</p>
+<p>Another important requirement on spatial price index numbers is
+<em>transitivity</em>, which demands that a direct price comparison of
+two regions gives the same result as an indirect comparison of the two
+regions via a third one. Consequently, transitivity ensures the
+consistency of a set of price index numbers. Again, if there are no data
+gaps, the Jevons and Dutot indices are transitive, while the Carli and
+Harmonic mean indices fail this test.</p>
+</div>
+<div id="unit-value-related-indices" class="section level2">
+<h2>Unit value related indices</h2>
+<p>A unit value divides the total expenditure of several products by the
+purchased quantities. This concept is only meaningful if the products
+are homogeneous. Otherwise, the quantities could not be added up in a
+meaningful way, which would result in a unit value bias. Several
+approaches exist that try to adjust the quantities in a way that they
+can be properly added up. Prominent examples are the indices proposed by
+<span class="citation">Banerjee (1977)</span>, <span class="citation">Davies (1924)</span>, and <span class="citation">Lehr
+(1885)</span>. They are defined as follows:</p>
+<ul>
+<li>Unit value index <span class="citation">(Drobisch 1871a,
+1871b)</span>: <span class="math display">\[P^{sr}_{\text{Unit-Value}} =
+\frac{\sum_{n=1} p_n^r q_n^r}{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1}
+q_n^s}{\sum_{n=1} q_n^r}\]</span></li>
+<li>Banerjee index <span class="citation">(Banerjee 1977)</span>: <span class="math display">\[P^{sr}_{\text{Banerjee}} = \frac{\sum_{n=1} p_n^r
+q_n^r }{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1} q_n^s \left( p_n^r +
+p_n^s \right) / 2}{\sum_{n=1}  q_n^r \left( p_n^r + p_n^s \right) /
+2}\]</span></li>
+<li>Davies index <span class="citation">(Davies 1924)</span>: <span class="math display">\[P^{sr}_{\text{Davies}} = \frac{\sum_{n=1} p_n^r
+q_n^r }{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1} q_n^s \sqrt{p_n^r
+p_n^s}}{\sum_{n=1}  q_n^r \sqrt{p_n^r p_n^s}}\]</span></li>
+<li>Lehr index <span class="citation">(Lehr 1885)</span>: <span class="math display">\[P^{sr}_{\text{Lehr}} = \frac{\sum_{n=1} p_n^r
+q_n^r }{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1} q_n^s \left( p_n^r
+q_n^r + p_n^s q_n^s \right) / \left( q_n^r +
+q_n^s\right)}{\sum_{n=1}  q_n^r \left( p_n^r q_n^r + p_n^s q_n^s \right)
+/ \left( q_n^r + q_n^s\right)} \ ,\]</span></li>
+</ul>
+<p>where <span class="math inline">\(q_n^r\)</span> is the purchased
+quantity of product <span class="math inline">\(n\)</span> in region
+<span class="math inline">\(r\)</span>. The latter three indices can be
+somehow seen as quality-adjusted unit value indices. This becomes more
+clear when rewriting the underlying formula as: <span class="math display">\[P^{sr}_{\text{QAUV}} = \frac{\sum_{n=1} p_n^r
+q_n^r }{\sum_{n=1} p_n^s q_n^s} \frac{\sum_{n=1} q_n^s
+z_n^{sr}}{\sum_{n=1}  q_n^r z_n^{sr}} \ ,\]</span> where the
+quality-adjustment factors <span class="math inline">\(z_n^{sr}\)</span>
+are defined as <span class="math display">\[z_n^{sr} = \begin{cases}
+\left( p_n^r + p_n^s \right) / 2 &amp; \text{if Banerjee index} \\
+\sqrt{p_n^r p_n^s} &amp; \text{if Davies index} \\ \left( p_n^r q_n^r +
+p_n^s q_n^s \right) / \left( q_n^r + q_n^s\right) &amp; \text{if Lehr
+index} \end{cases}\]</span> For the standard unit value index, the
+quality-adjustment factor would simply be 1.</p>
+<p>The indices can be computed separately for each region using the
+quantities available in the data, e.g., for a unit value index as
+follows:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># unit value index:</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>dt[, <span class="fu">uvalue</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="co">#&gt; 1.0000000 0.9919158 0.9876468 1.0571118 0.9348979</span></span></code></pre></div>
+<p>The unit value indices have the drawback that the resulting price
+index might show price level differences which solely come from the
+quantities. Hence, even when all prices in two regions are identical,
+the price index might not be unity due to different quantities. This
+often undesirable property is avoided by the following weighted price
+indices.</p>
+</div>
+<div id="quantity-or-expenditure-share-weighted-indices" class="section level2">
+<h2>Quantity or expenditure share weighted indices</h2>
+<p>Not each individual product or basic heading is equally important to
+consumers. Household consumption considerably varies across basic
+headings but also for individual products within a basic heading.
+Neglecting these differences may cause a bias in the price index numbers
+as the price differences of less important products receive the same
+weight as more important ones. Therefore, any weighting information
+available should be included in the price comparison. The
+<code>pricelevels</code>-package offers the following weighted bilateral
+price indices. They equally work with quantities, <span class="math inline">\(q_n^r\)</span>, and weights, <span class="math inline">\(w_n^r\)</span>, when the weights can be expressed
+as regional expenditure shares, i.e., <span class="math inline">\(w_n^r
+= p_n^r q_n^r / \sum_{j=1}^N p_j^r q_j^r\)</span>.</p>
+<ul>
+<li>Laspeyres index <span class="citation">(Laspeyres 1871)</span>:
+<span class="math display">\[P_{\text{Laspeyres}}^{sr} =
+\frac{\sum_{n=1}^{N} p_n^r q_n^s}{\sum_{n=1}^{N} p_n^s q_n^s} =
+\sum_{n=1}^{N} w_n^s \left( p_n^r / p_n^s \right)\]</span></li>
+<li>Paasche index <span class="citation">(Paasche 1874)</span>: <span class="math display">\[P_{\text{Paasche}}^{sr} = \frac{\sum_{n=1}^{N}
+p_n^r q_n^r}{\sum_{n=1}^{N} p_n^s q_n^r} = \frac{1}{\sum_{n=1}^{N} w_n^r
+\left( p_n^s / p_n^r \right)}\]</span></li>
+<li>Palgrave index <span class="citation">(Palgrave 1886)</span>: <span class="math display">\[P_{\text{Palgrave}}^{sr} = \sum_{n=1}^N w_n^r
+\left( p_n^r / p_n^s \right)\]</span></li>
+<li>Fisher index <span class="citation">(Fisher 1921)</span>: <span class="math display">\[P_{\text{Fisher}}^{sr} =
+\sqrt{P_{\text{Laspeyres}}^{sr} \ P_{\text{Paasche}}^{sr}}\]</span></li>
+<li>Drobisch index <span class="citation">(Drobisch 1871a,
+1871b)</span>: <span class="math display">\[P_{\text{Drobisch}}^{sr} =
+\left( P_{\text{Laspeyres}}^{sr} + P_{\text{Paasche}}^{sr} \right) /
+2\]</span></li>
+<li>Lowe index <span class="citation">(Lowe 1823)</span>: <span class="math display">\[\begin{aligned} P_{\text{Lowe}}^{sr} &amp;=
+\frac{\sum_{n=1}^{N} p_n^r q_n^b}{\sum_{n=1}^{N} p_n^s q_n^b}\\ &amp;=
+\sum_{n=1}^{N} w_n^b \left( p_n^r / p_n^s \right) \quad , \text{with} \
+w_n^{b} = \frac{p_n^s q_n^b}{\sum_{j=1}^N p_j^s q_j^b}
+\end{aligned}\]</span></li>
+<li>Young index <span class="citation">(Young 1812)</span>: <span class="math display">\[P_{\text{Young}}^{sr} = \sum_{n=1}^{N} w_n^b
+\left( p_n^r / p_n^s \right) \quad , \text{with} \ w_n^{b} = \frac{p_n^b
+q_n^b}{\sum_{j=1}^N p_j^b q_j^b}\]</span></li>
+<li>Marshall-Edgeworth index <span class="citation">(Marshall 1887;
+Edgeworth 1925)</span>: <span class="math display">\[\begin{aligned}
+P_{\text{Marshall-Edgeworth}}^{sr} &amp;= \frac{\sum_{n=1}^N p_n^r
+\left( q_n^r + q_n^s \right)}{\sum_{n=1}^N p_n^s \left( q_n^r + q_n^s
+\right)} \\ &amp;= \sum_{n=1}^N \bar{w}_n^{sr} \left( p_n^r / p_n^s
+\right) \quad , \text{with} \ \bar{w}_n^{sr} = \frac{p_n^s \left( q_n^r
++ q_n^s \right)}{\sum_{j=1}^N p_j^s \left( q_j^r + q_j^s \right)}
+\end{aligned}\]</span></li>
+<li>Walsh index <span class="citation">(Walsh 1901)</span>: <span class="math display">\[\begin{aligned} P_{\text{Walsh}}^{sr} &amp;=
+\frac{\sum_{n=1}^{N} \sqrt{q_n^r q_n^s} \ p_n^r}{\sum_{n=1}^{N}
+\sqrt{q_n^r q_n^s} \ p_n^s}\\ &amp;= \frac{\sum_{n=1}^{N} \left(
+\bar{w}_n^{sr} / \sum_{j=1}^N \bar{w}_j^{sr} \right) \sqrt{p_n^r /
+p_n^s}}{\sum_{n=1}^{N} \left( \bar{w}_n^{sr} / \sum_{j=1}^N
+\bar{w}_j^{sr} \right) \sqrt{p_n^s / p_n^r}} \quad , \text{with} \
+\bar{w}_n^{sr} = \sqrt{w_n^r w_n^s} \end{aligned}\]</span></li>
+<li>Geometric Laspeyres index: <span class="math display">\[P_{\text{Geo-Laspeyres}}^{sr} = \prod_{n=1}^N
+\left( p_n^r / p_n^s \right)^{w_n^s}\]</span></li>
+<li>Geometric Paasche index: <span class="math display">\[P_{\text{Geo-Paasche}}^{sr} = \prod_{n=1}^N
+\left( p_n^r / p_n^s \right)^{w_n^r}\]</span></li>
+<li>Törnqvist index <span class="citation">(Törnqvist 1936)</span>:
+<span class="math display">\[\begin{aligned} P_{\text{Törnqvist}}^{sr}
+&amp;= \sqrt{P_{\text{Geo-Laspeyres}}^{sr} \
+P_{\text{Geo-Paasche}}^{sr}}\\ &amp;= \prod_{n=1}^N \left( p_n^r / p_n^s
+\right)^{\bar{w}_n^{sr} / \sum_{j=1}^N \bar{w}_j^{sr}} \quad ,
+\text{with} \ \bar{w}_n^{sr} = \frac{1}{2} \left( w_n^r + w_n^s \right)
+\end{aligned}\]</span></li>
+<li>Geometric Walsh index <span class="citation">(Walsh 1901)</span>:
+<span class="math display">\[P_{\text{Geo-Walsh}}^{sr} = \prod_{n=1}^N
+\left( p_n^r / p_n^s \right)^{\bar{w}_n^{sr} / \sum_{j=1}^N
+\bar{w}_j^{sr}} \quad , \text{with} \ \bar{w}_n^{sr} = \sqrt{w_n^r
+w_n^s}\]</span></li>
+<li>Theil index <span class="citation">(Theil 1973)</span>: <span class="math display">\[P_{\text{Theil}}^{sr} = \prod_{n=1}^N \left(
+p_n^r / p_n^s \right)^{\bar{w}_n^{sr} / \sum_{j=1}^N \bar{w}_j^{sr}}
+\quad , \text{with} \ \bar{w}_n^{sr} = \left[ \frac{1}{2} \left( w_n^r +
+w_n^s \right) \ w_n^r \ w_n^s \right]^{1/3}\]</span></li>
+<li>Sato-Vartia index <span class="citation">(Sato 1976; Vartia
+1976)</span>: <span class="math display">\[P_{\text{Sato-Vartia}}^{sr} =
+\prod_{n=1}^N \left( p_n^r / p_n^s \right)^{\bar{w}_n^{sr} /
+\sum_{j=1}^N \bar{w}_j^{sr}} \quad , \text{with} \ \bar{w}_n^{sr} =
+\begin{cases} \frac{w_n^r-w_n^s}{\ln{w_n^r}-\ln{w_n^s}} &amp; w_n^r \neq
+w_n^s \\ w_n^s &amp; w_n^r = w_n^s \end{cases}\]</span></li>
+</ul>
+<p>The well-known Laspeyres index can be computed for each region using
+the quantities available in the data:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>dt[, <span class="fu">laspeyres</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co">#&gt; 1.0000000 1.0000873 0.9929240 1.0607180 0.9429748</span></span></code></pre></div>
+<p>The same result can be achieved by deriving expenditure shares of the
+individual products and using them as weights <code>w</code> in the
+<code>laspeyres()</code>-function:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>dt[, <span class="st">&quot;share&quot;</span> <span class="sc">:=</span> price<span class="sc">*</span>quantity<span class="sc">/</span><span class="fu">sum</span>(price<span class="sc">*</span>quantity), by<span class="ot">=</span><span class="st">&quot;region&quot;</span>]</span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>dt[, <span class="fu">laspeyres</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">w=</span>share, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co">#&gt; 1.0000000 1.0000873 0.9929240 1.0607180 0.9429748</span></span></code></pre></div>
+<p>While the Laspeyres index uses the quantities (or expenditure shares)
+of the base region for weighting, the Paasche index relies on the
+quantities (or expenditure shares) of the comparison regions. By
+contrast, the Fisher, Walsh, and Törnqvist index average the quantities
+(or expenditure shares) of the two regions involved in the price
+comparison. They are also denoted as <em>superlative price indices</em>.
+However, all bilateral indices fail the country reversal and
+transitivity test if there are gaps in the data. Therefore, multilateral
+price indices have been developed to deal with this issue. Their use is
+recommended in particular for spatial price comparisons though they are
+nowadays more and more used for temporal price comparisons as well.</p>
+</div>
+</div>
+<div id="multilateral-price-indices" class="section level1">
+<h1>Multilateral price indices</h1>
+<p>Multilateral price indices simultaneously use the prices of all
+regions involved in the price comparison to compute a set of transitive
+price index numbers - irrespective of any data gaps. The
+<code>pricelevels</code>-package offers the three most prominent
+multilateral price indices, and a newly developed extension:</p>
+<ul>
+<li>CPD and NLCPD methods: <code>cpd()</code> and
+<code>nlcpd()</code></li>
+<li>GEKS method: <code>geks()</code></li>
+<li>Multilateral systems of equations: <code>gkhamis()</code>,
+<code>idb()</code>, <code>gerardi()</code>, and <code>rao()</code></li>
+</ul>
+<div id="cpd-and-nlcpd-methods" class="section level2">
+<h2>CPD and NLCPD methods</h2>
+<p>The CPD method <span class="citation">(Summers 1973)</span> is a
+linear regression model that explains the logarithmic price of product
+<span class="math inline">\(n\)</span> in region <span class="math inline">\(r\)</span>, <span class="math inline">\(\ln
+p_n^r\)</span>, by the general product prices, <span class="math inline">\(\ln \pi_n \ (n=1,\ldots,N)\)</span>, and the
+overall regional price levels, <span class="math inline">\(\ln P^r \
+(r=1,\ldots,R)\)</span>:</p>
+<p><span class="math display">\[\ln p_n^r = \ln \pi_n + \ln P^r + \ln
+\epsilon_n^r \quad \text{with} \ \ln \epsilon_n^r \sim N(0,
+\sigma^2)\]</span> <span class="citation">Auer and Weinand (2022)</span>
+recently proposed a generalization of the CPD method. This nonlinear CPD
+method (NLCPD method) inflates the CPD model by product-specific
+elasticities <span class="math inline">\(\delta_n \
+(n=1,\ldots,N)\)</span>:</p>
+<p><span class="math display">\[\ln p_n^r = \ln \pi_n + \delta_n \ln P^r
++ \ln \epsilon_n^r \quad \text{with} \ \ln \epsilon_n^r \sim N(0,
+\sigma^2)\]</span> The CPD method implicitly assumes that all <span class="math inline">\(\delta_n=1\)</span>. However, this assumption is
+not very realistic as price elasticities can considerably differ between
+the products, particularly at higher levels (e.g., rents versus
+food).</p>
+<p>Estimating the CPD and NLCPD regression model produces estimates for
+the regional price levels, respectively. However, both methods require a
+normalization of the estimated price levels <span class="math inline">\(\widehat{\ln P^r}\)</span> to avoid
+multicollinearity. With normalization <span class="math inline">\(\sum_{r=1}^{R} \widehat{\ln P^r}=0\)</span>, the
+price levels are expressed relative to the regional average; otherwise,
+the (logarithm of the) price level of one specific region is set to 0.
+The NLCPD method conditionally imposes the restriction <span class="math inline">\(\sum_{n=1}^{N} w_n \widehat{\delta_n}=1\)</span>,
+which is satisfied by the CPD method by definition.</p>
+<p>The CPD and NLCPD methods are implemented in the functions
+<code>cpd()</code> and <code>nlcpd()</code>. The functions can be used
+similarly to those for bilateral indices as shown below. However, if
+requested by the user, they provide some additional information and they
+can express the regional price levels relative to the unweighted
+regional average by setting <code>base=NULL</code>.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># CPD estimation with respect to regional average:</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>dt[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="cn">NULL</span>)]</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="co">#&gt; 0.9992531 0.9959948 0.9952321 1.0750871 0.9390731</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a><span class="co"># CPD estimation with respect to region 1:</span></span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>dt[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a><span class="co">#&gt; 1.0000000 0.9967392 0.9959759 1.0758907 0.9397750</span></span>
+<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a><span class="co"># same price levels with shares as weights:</span></span>
+<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a>dt[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">w=</span>share, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb21-13"><a href="#cb21-13" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb21-14"><a href="#cb21-14" tabindex="-1"></a><span class="co">#&gt; 1.0000000 0.9967392 0.9959759 1.0758907 0.9397750</span></span>
+<span id="cb21-15"><a href="#cb21-15" tabindex="-1"></a></span>
+<span id="cb21-16"><a href="#cb21-16" tabindex="-1"></a><span class="co"># NLCPD estimation with shares as weights:</span></span>
+<span id="cb21-17"><a href="#cb21-17" tabindex="-1"></a>dt[, <span class="fu">nlcpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">w=</span>share, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb21-18"><a href="#cb21-18" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb21-19"><a href="#cb21-19" tabindex="-1"></a><span class="co">#&gt; 1.0000000 0.9923211 0.9860177 1.0615430 0.9341702</span></span></code></pre></div>
+<p>If not only the (unlogged) price level estimates but the full
+regression output is of interest, this can be retrieved by setting
+<code>simplify=FALSE</code> in the functions (shown below for
+<code>cpd()</code>):</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="co"># full CPD regression output:</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>dt[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">w=</span>share, <span class="at">simplify=</span><span class="cn">FALSE</span>)]</span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a><span class="co">#&gt; stats::lm(formula = cpd_mod, data = pdata, weights = w, singular.ok = FALSE)</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a><span class="co">#&gt;       pi.1        pi.2        pi.3        pi.4       lnP.1       lnP.2  </span></span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="co">#&gt;  2.8741375   3.0253536   2.9090996   2.9991116  -0.0007471  -0.0040133  </span></span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a><span class="co">#&gt;      lnP.3       lnP.4  </span></span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a><span class="co">#&gt; -0.0047793   0.0724017</span></span></code></pre></div>
+<p>The NLCPD method solves a nonlinear optimization problem. Therefore,
+it is computationally much slower than most other price indices.
+However, computation speed can be improved by using the Jacobian matrix
+for the optimization instead of deriving this matrix analytically during
+optimization. This can be achieved by changing the <code>settings</code>
+in <code>nlcpd()</code>.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>dt.big <span class="ot">&lt;-</span> <span class="fu">rdata</span>(<span class="at">R=</span><span class="dv">50</span>, <span class="at">B=</span><span class="dv">1</span>, <span class="at">N=</span><span class="dv">30</span>, <span class="at">gaps=</span><span class="fl">0.25</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a><span class="co"># don&#39;t use jacobian matrix:</span></span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a><span class="fu">system.time</span>(m1 <span class="ot">&lt;-</span> dt.big[, <span class="fu">nlcpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity,</span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a>                              <span class="at">settings=</span><span class="fu">list</span>(<span class="at">use.jac=</span><span class="cn">FALSE</span>), <span class="at">simplify=</span><span class="cn">FALSE</span>,</span>
+<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a>                              <span class="at">control=</span>minpack.lm<span class="sc">::</span><span class="fu">nls.lm.control</span>(<span class="st">&quot;maxiter&quot;</span><span class="ot">=</span><span class="dv">200</span>))])</span>
+<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
+<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a><span class="co">#&gt;    0.70    0.02    0.77</span></span>
+<span id="cb23-10"><a href="#cb23-10" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" tabindex="-1"></a><span class="co"># use jacobian matrix:</span></span>
+<span id="cb23-12"><a href="#cb23-12" tabindex="-1"></a><span class="fu">system.time</span>(m2 <span class="ot">&lt;-</span> dt.big[, <span class="fu">nlcpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity,</span>
+<span id="cb23-13"><a href="#cb23-13" tabindex="-1"></a>                              <span class="at">settings=</span><span class="fu">list</span>(<span class="at">use.jac=</span><span class="cn">TRUE</span>), <span class="at">simplify=</span><span class="cn">FALSE</span>,</span>
+<span id="cb23-14"><a href="#cb23-14" tabindex="-1"></a>                              <span class="at">control=</span>minpack.lm<span class="sc">::</span><span class="fu">nls.lm.control</span>(<span class="st">&quot;maxiter&quot;</span><span class="ot">=</span><span class="dv">200</span>))])</span>
+<span id="cb23-15"><a href="#cb23-15" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
+<span id="cb23-16"><a href="#cb23-16" tabindex="-1"></a><span class="co">#&gt;    0.08    0.00    0.09</span></span>
+<span id="cb23-17"><a href="#cb23-17" tabindex="-1"></a></span>
+<span id="cb23-18"><a href="#cb23-18" tabindex="-1"></a><span class="co"># less computation time needed for m2, but same results as m1:</span></span>
+<span id="cb23-19"><a href="#cb23-19" tabindex="-1"></a><span class="fu">all.equal</span>(m1<span class="sc">$</span>par, m2<span class="sc">$</span>par, <span class="at">tol=</span><span class="fl">1e-05</span>)</span>
+<span id="cb23-20"><a href="#cb23-20" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>As stated earlier, the CPD and NLCPD methods produce transitive price
+levels. This is also true when there are data gaps. Below, we introduce
+random gaps in the data <code>dt</code>, reestimate the CPD and NLCPD
+models, and test for transitivity. More precisely, we check if the
+direct price comparison between regions <code>2</code> and
+<code>1</code> is the same as the indirect comparison including region
+<code>3</code>, i.e., <span class="math inline">\(\widehat{P}^{12} =
+\widehat{P}^{13} \cdot \widehat{P}^{32}\)</span>.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="co"># introduce 20% data gaps:</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>dt.gaps <span class="ot">&lt;-</span> dt[<span class="sc">!</span><span class="fu">rgaps</span>(<span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">amount=</span><span class="fl">0.2</span>)]</span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a><span class="co"># estimate CPD model using different base regions and check transitivity:</span></span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a>P1.cpd <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a>P3.cpd <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;3&quot;</span>)]</span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a><span class="fu">all.equal</span>(P1.cpd[<span class="dv">2</span>], P1.cpd[<span class="dv">3</span>]<span class="sc">*</span>P3.cpd[<span class="dv">2</span>], <span class="at">check.attributes=</span><span class="cn">FALSE</span>)</span>
+<span id="cb24-9"><a href="#cb24-9" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb24-10"><a href="#cb24-10" tabindex="-1"></a></span>
+<span id="cb24-11"><a href="#cb24-11" tabindex="-1"></a><span class="co"># estimate NLCPD model using different base regions and check transitivity:</span></span>
+<span id="cb24-12"><a href="#cb24-12" tabindex="-1"></a>P1.nlcpd <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">nlcpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb24-13"><a href="#cb24-13" tabindex="-1"></a>P3.nlcpd <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">nlcpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;3&quot;</span>)]</span>
+<span id="cb24-14"><a href="#cb24-14" tabindex="-1"></a><span class="fu">all.equal</span>(P1.nlcpd[<span class="dv">2</span>], P1.nlcpd[<span class="dv">3</span>]<span class="sc">*</span>P3.nlcpd[<span class="dv">2</span>], <span class="at">check.attributes=</span><span class="cn">FALSE</span>)</span>
+<span id="cb24-15"><a href="#cb24-15" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>The results indicate that both the CPD method and the NLCPD method
+produce transitive price level estimates even when data gaps are
+present.</p>
+</div>
+<div id="geks-method" class="section level2">
+<h2>GEKS method</h2>
+<p>The GEKS method <span class="citation">(Gini 1924, 1931; Eltetö and
+Köves 1964; Szulc 1964)</span> is a two-step approach. First, prices are
+aggregated into bilateral index numbers for every pair of regions in the
+data. Second, the bilateral index numbers are transformed into a set of
+transitive index numbers by estimating the linear regression model <span class="math display">\[\ln \dot{P}^{sr} = \ln \left( P^r / P^s \right) +
+\ln \epsilon^{sr} \quad \text{with} \ \ln \epsilon^{sr} \sim
+N(0,\sigma^2) \ ,\]</span> where <span class="math inline">\(\dot{P}^{sr}\)</span> is the bilateral price index
+for regions <span class="math inline">\(s\)</span> and <span class="math inline">\(r\)</span> computed in the first stage. For this
+computation any bilateral index could theoretically be used (and is
+supported in the <code>pricelevels</code>-package). <span class="citation">Rao and Banerjee (1986)</span>, however, recommend that
+the bilateral price index satisfies the country reversal test. If, for
+example, the Jevons index is used in the computations, then it is more
+precise to denote the resulting index numbers as the GEKS-Jevons price
+index.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="co"># GEKS using Törnqvist:</span></span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>dt.gaps[, <span class="fu">geks</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">settings=</span><span class="fu">list</span>(<span class="at">type=</span><span class="st">&quot;toernqvist&quot;</span>))]</span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a><span class="co">#&gt; 0.9968630 0.9939038 0.9905194 1.0940081 0.9314009</span></span>
+<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a><span class="co"># GEKS using Jevons so quantities have no impact:</span></span>
+<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a>dt.gaps[, <span class="fu">geks</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">settings=</span><span class="fu">list</span>(<span class="at">type=</span><span class="st">&quot;jevons&quot;</span>))]</span>
+<span id="cb25-8"><a href="#cb25-8" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5 </span></span>
+<span id="cb25-9"><a href="#cb25-9" tabindex="-1"></a><span class="co">#&gt; 0.9954545 0.9945994 0.9916983 1.0880181 0.9360838</span></span></code></pre></div>
+<p>The <code>geks()</code>-function internally calls the function
+<code>index.pairs()</code> to compute the bilateral indices of all
+region pairs. The quantities <code>q</code> or weights <code>w</code>
+are used within this aggregation of prices into bilateral index numbers
+(first stage) while the subsequent transformation of these index numbers
+(second stage) usually does not rely on any weights (but can if
+specified in <code>settings$wmethod</code>). In this case, the solution
+to the regression model above simplifies to <span class="math display">\[P_{\text{GEKS-J}}^{1r} = \prod_{s=1}^{R} \left(
+\dot{P}^{1s}_{\text{J}} \dot{P}^{sr}_{\text{J}} \right)^{1/R} \
+,\]</span> if the Jevons index is used and region <code>1</code> serves
+as the base region <span class="citation">(ILO et al. 2020,
+448)</span>.</p>
+<p>Again, the following checks show that the price index numbers derived
+with the GEKS-Törnqvist index are transitive:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="co"># estimate GEKS-Törnqvist using different base regions and </span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="co"># applying weights in second aggregation stage:</span></span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a>P1.geks <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">geks</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;1&quot;</span>,</span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>                          <span class="at">settings=</span><span class="fu">list</span>(<span class="at">type=</span><span class="st">&quot;toernqvist&quot;</span>, <span class="at">wmethod=</span><span class="st">&quot;obs&quot;</span>))]</span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>P3.geks <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">geks</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;3&quot;</span>,</span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a>                          <span class="at">settings=</span><span class="fu">list</span>(<span class="at">type=</span><span class="st">&quot;toernqvist&quot;</span>, <span class="at">wmethod=</span><span class="st">&quot;obs&quot;</span>))]</span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a></span>
+<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a><span class="co"># check transitivity:</span></span>
+<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a><span class="fu">all.equal</span>(P1.geks[<span class="dv">2</span>], P1.geks[<span class="dv">3</span>]<span class="sc">*</span>P3.geks[<span class="dv">2</span>], <span class="at">check.attributes=</span><span class="cn">FALSE</span>)</span>
+<span id="cb26-10"><a href="#cb26-10" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+</div>
+<div id="multilateral-systems-of-equations" class="section level2">
+<h2>Multilateral systems of equations</h2>
+<p>The following price indices belong to this very general class of
+multilateral price indices and are implemented in the
+<code>pricelevels</code>-package.</p>
+<ul>
+<li>Geary-Khamis method <code>gkhamis()</code> proposed by <span class="citation">Geary (1958)</span> and <span class="citation">Khamis
+(1972)</span>;</li>
+<li>Gerardi method <code>gerardi()</code> used by <span class="citation">Eurostat (1978)</span>;</li>
+<li>Rao method <code>rao()</code> proposed by <span class="citation">Rao
+(1990)</span>;</li>
+<li>Ikle-Dikhanov-Balk method <code>idb()</code> developed by <span class="citation">Ikle (1972)</span>, <span class="citation">Dikhanov
+(1994)</span>, and <span class="citation">Balk (1996)</span>.</li>
+</ul>
+<p>All methods have in common that they set up a system of interrelated
+equations of international product prices and regional price levels,
+which must be solved iteratively. It is only the definition of the
+international product prices and the price levels that differ between
+the methods.</p>
+<p>The <em>Geary-Khamis method</em> defines the international average
+prices, <span class="math inline">\(\pi_n\)</span>, as <span class="math display">\[\pi_n = \frac{\sum_{r=1}^{R} q_n^r \left( p_n^r/
+P^r \right)}{\sum_{r=1}^{R} q_n^r}\]</span> for all products <span class="math inline">\(n=1,\ldots,N\)</span> and the regional price
+levels, <span class="math inline">\(P^r\)</span>, as <span class="math display">\[P^r = \frac{\sum_{n=1}^{N} p_n^r
+q_n^r}{\sum_{n=1}^{N} \pi_n q_n^r} = \left[ \sum_{n=1}^{N} w_n^r \left(
+p_n^r / \pi_n \right)^{-1} \right]^{-1}\]</span> for all regions <span class="math inline">\(r=1,\ldots,R\)</span>, where the weights <span class="math inline">\(w_n^r= p_n^r q_n^r / \sum_{n=1}^{N} p_n^r
+q_n^r\)</span> represent expenditure shares. This system of interrelated
+equations can be solved iteratively or analytically using matrix algebra
+<span class="citation">(Diewert 1999)</span>. Which approach is
+computationally faster depends on the data.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="co"># sample data with gaps:</span></span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a>dt.big <span class="ot">&lt;-</span> <span class="fu">rdata</span>(<span class="at">R=</span><span class="dv">99</span>, <span class="at">B=</span><span class="dv">1</span>, <span class="at">N=</span><span class="dv">50</span>, <span class="at">gaps=</span><span class="fl">0.25</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" tabindex="-1"></a><span class="co"># iterative processing:</span></span>
+<span id="cb27-6"><a href="#cb27-6" tabindex="-1"></a><span class="fu">system.time</span>(m1 <span class="ot">&lt;-</span> dt.big[, <span class="fu">gkhamis</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity,</span>
+<span id="cb27-7"><a href="#cb27-7" tabindex="-1"></a>                                   <span class="at">settings=</span><span class="fu">list</span>(<span class="at">solve=</span><span class="st">&quot;iterative&quot;</span>))])</span>
+<span id="cb27-8"><a href="#cb27-8" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
+<span id="cb27-9"><a href="#cb27-9" tabindex="-1"></a><span class="co">#&gt;    0.01    0.00    0.02</span></span>
+<span id="cb27-10"><a href="#cb27-10" tabindex="-1"></a></span>
+<span id="cb27-11"><a href="#cb27-11" tabindex="-1"></a><span class="co"># matrix algebra:</span></span>
+<span id="cb27-12"><a href="#cb27-12" tabindex="-1"></a><span class="fu">system.time</span>(m2 <span class="ot">&lt;-</span> dt.big[, <span class="fu">gkhamis</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity,</span>
+<span id="cb27-13"><a href="#cb27-13" tabindex="-1"></a>                                   <span class="at">settings=</span><span class="fu">list</span>(<span class="at">solve=</span><span class="st">&quot;matrix&quot;</span>))])</span>
+<span id="cb27-14"><a href="#cb27-14" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
+<span id="cb27-15"><a href="#cb27-15" tabindex="-1"></a><span class="co">#&gt;    0.03    0.02    0.04</span></span>
+<span id="cb27-16"><a href="#cb27-16" tabindex="-1"></a></span>
+<span id="cb27-17"><a href="#cb27-17" tabindex="-1"></a><span class="co"># compare results:</span></span>
+<span id="cb27-18"><a href="#cb27-18" tabindex="-1"></a><span class="fu">all.equal</span>(m1, m2, <span class="at">tol=</span><span class="fl">1e-05</span>)</span>
+<span id="cb27-19"><a href="#cb27-19" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>The <em>Gerardi index</em> and the <em>Iklé-Dikhanov-Balk (IDB)
+index</em> define the price levels exactly in the same way as the
+Geary-Khamis index. However, they define the international product
+prices differently. For the Gerardi index, the <span class="math inline">\(\pi_n\)</span>’s are computed as simple geometric
+averages of the prices, <span class="math display">\[\pi_n = \left(
+\prod_{r=1}^{R} p_i^r \right)^{1/R} \quad n=1,\ldots,N \ , \]</span>
+while in the IDB index they rely on expenditure shares: <span class="math display">\[\pi_n = \left[ \frac{\sum_{r=1}^{R} w_n^r \left(
+p_n^r / P^r \right)^{-1}}{\sum_{r=1}^{R} w_n^r} \right]^{-1} \quad
+n=1,\ldots,N \ . \]</span> The IDB index uses the expenditure shares
+instead of quantity shares as the Geary-Khamis. Therefore, it suffers
+less from the <em>Gerschenkorn effect</em> as bigger countries do not
+receive more influence in the calculations than smaller countries.</p>
+<p>In contrast to the Geary-Khamis index, the Gerardi and IDB indices
+can be computed with quantities <span class="math inline">\(q_n^r\)</span> <em>or</em> expenditure share
+weights <span class="math inline">\(w_n^r\)</span>. This also applies to
+the <em>Rao index</em>, which derives the international product prices,
+<span class="math inline">\(\pi_n \ (n=1,\ldots,N)\)</span>, and
+regional price levels, <span class="math inline">\(P^r \
+(r=1,\ldots,R)\)</span>, from the following system of interrelated
+equations:</p>
+<p><span class="math display">\[\pi_n = \prod_{r=1}^{R} \left( p_n^r /
+P^r \right)^{w_n^r / \sum_{s=1}^{R} w_n^s} \quad \text{and} \quad P^r =
+\prod_{n=1}^{N} \left( p_n^r / \pi_n \right)^{w_n^r} \ . \]</span> Also
+the price indices belonging to this class of multilateral systems of
+equations produce transitive price levels.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="co"># Geary-Khamis index transitive:</span></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>P1.gk <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">gkhamis</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a>P3.gk <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">gkhamis</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;3&quot;</span>)]</span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a><span class="fu">all.equal</span>(P1.gk[<span class="dv">2</span>], P1.gk[<span class="dv">3</span>]<span class="sc">*</span>P3.gk[<span class="dv">2</span>], <span class="at">check.attributes=</span><span class="cn">FALSE</span>)</span>
+<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" tabindex="-1"></a><span class="co"># Rao index transitive:</span></span>
+<span id="cb28-8"><a href="#cb28-8" tabindex="-1"></a>P1.rao <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">rao</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb28-9"><a href="#cb28-9" tabindex="-1"></a>P3.rao <span class="ot">&lt;-</span> dt.gaps[, <span class="fu">rao</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;3&quot;</span>)]</span>
+<span id="cb28-10"><a href="#cb28-10" tabindex="-1"></a><span class="fu">all.equal</span>(P1.rao[<span class="dv">2</span>], P1.rao[<span class="dv">3</span>]<span class="sc">*</span>P3.rao[<span class="dv">2</span>], <span class="at">check.attributes=</span><span class="cn">FALSE</span>)</span>
+<span id="cb28-11"><a href="#cb28-11" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+</div>
+</div>
+<div id="some-further-package-features" class="section level1">
+<h1>Some further package features</h1>
+<div id="price-indices-with-non-connected-price-data" class="section level2">
+<h2>Price indices with non-connected price data</h2>
+<p>Bilateral price indices use solely the direct matches or links
+between two regions. Hence, indirect links between two regions via a
+third one are not taken into account. This is different for multilateral
+price indices, which make use of these indirect links. Consequently, the
+function output between these indices may differ.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="co"># example data:</span></span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fu">data.table</span>(</span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a>  <span class="st">&quot;region&quot;</span><span class="ot">=</span><span class="fu">rep</span>(letters[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>], <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">7</span>,<span class="dv">4</span>,<span class="dv">4</span>)),</span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>  <span class="st">&quot;product&quot;</span><span class="ot">=</span><span class="fu">as.character</span>(<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>, <span class="dv">4</span><span class="sc">:</span><span class="dv">7</span>, <span class="dv">4</span><span class="sc">:</span><span class="dv">7</span>)))</span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a>dt[, <span class="st">&quot;price&quot;</span><span class="sc">:=</span><span class="fu">rnorm</span>(<span class="at">n=</span>.N, <span class="at">mean=</span><span class="dv">20</span>, <span class="at">sd=</span><span class="dv">2</span>)]</span>
+<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a>dt[, <span class="st">&quot;quantity&quot;</span><span class="sc">:=</span><span class="fu">rnorm</span>(<span class="at">n=</span>.N, <span class="at">mean=</span><span class="dv">999</span>, <span class="at">sd=</span><span class="dv">100</span>)]</span>
+<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a></span>
+<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a><span class="co"># price matrix:</span></span>
+<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a><span class="fu">with</span>(dt, <span class="fu">tapply</span>(<span class="at">X=</span>price, <span class="fu">list</span>(product, region), mean))</span>
+<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a><span class="co">#&gt;          a        b        c        d        e</span></span>
+<span id="cb29-12"><a href="#cb29-12" tabindex="-1"></a><span class="co">#&gt; 1 18.87905 20.14102 20.92183       NA       NA</span></span>
+<span id="cb29-13"><a href="#cb29-13" tabindex="-1"></a><span class="co">#&gt; 2 19.53965 20.25858 17.46988       NA       NA</span></span>
+<span id="cb29-14"><a href="#cb29-14" tabindex="-1"></a><span class="co">#&gt; 3 23.11742 23.43013 18.62629       NA       NA</span></span>
+<span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a><span class="co">#&gt; 4       NA       NA 19.10868 20.22137 16.06677</span></span>
+<span id="cb29-16"><a href="#cb29-16" tabindex="-1"></a><span class="co">#&gt; 5       NA       NA 22.44816 18.88832 21.40271</span></span>
+<span id="cb29-17"><a href="#cb29-17" tabindex="-1"></a><span class="co">#&gt; 6       NA       NA 20.71963 23.57383 19.05442</span></span>
+<span id="cb29-18"><a href="#cb29-18" tabindex="-1"></a><span class="co">#&gt; 7       NA       NA 20.80154 20.99570 17.86435</span></span></code></pre></div>
+<p>The price matrix shows that prices for products <code>1</code> to
+<code>3</code> are available in regions <code>a</code>, <code>b</code>,
+and <code>c</code>, while prices for products <code>4</code> to
+<code>7</code> were recorded in regions <code>c</code>, <code>d</code>,
+and <code>e</code>. Since in region <code>c</code> the prices are
+complete, the data are connected - either through direct or indirect
+regional links.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a>dt[, <span class="fu">is.connected</span>(<span class="at">r=</span>region, <span class="at">n=</span>product)] <span class="co"># true</span></span>
+<span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>However, the price matrix also shows that there are no product
+matches for regions <code>a</code> and <code>d</code>, for example.
+Therefore, any bilateral price index between these two regions is not
+defined, while the multilateral price indices will provide a price level
+by taking into account the indirect link of regions <code>a</code> and
+<code>d</code> via region <code>c</code>.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="co"># bilateral jevons index:</span></span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>dt[, <span class="fu">jevons</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;a&quot;</span>)]</span>
+<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a><span class="co">#&gt;         a         b         c         d         e </span></span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a><span class="co">#&gt; 1.0000000 1.0388264 0.9276696        NA        NA</span></span>
+<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" tabindex="-1"></a><span class="co"># multilateral unweighted cpd index:</span></span>
+<span id="cb31-7"><a href="#cb31-7" tabindex="-1"></a>dt[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;a&quot;</span>)]</span>
+<span id="cb31-8"><a href="#cb31-8" tabindex="-1"></a><span class="co">#&gt;         a         b         c         d         e </span></span>
+<span id="cb31-9"><a href="#cb31-9" tabindex="-1"></a><span class="co">#&gt; 1.0000000 1.0388264 0.9276696 0.9328507 0.8274965</span></span></code></pre></div>
+<p>If we now assume that there is no region <code>c</code>, the data
+will consist of two separate blocks of regions and, thus, become
+non-connected.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="co"># drop region &#39;c&#39;:</span></span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a>dt2 <span class="ot">&lt;-</span> dt[<span class="sc">!</span>region<span class="sc">%in%</span><span class="st">&quot;c&quot;</span>,]</span>
+<span id="cb32-3"><a href="#cb32-3" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" tabindex="-1"></a><span class="co"># price matrix:</span></span>
+<span id="cb32-5"><a href="#cb32-5" tabindex="-1"></a><span class="fu">with</span>(dt2, <span class="fu">tapply</span>(<span class="at">X=</span>price, <span class="fu">list</span>(product, region), mean))</span>
+<span id="cb32-6"><a href="#cb32-6" tabindex="-1"></a><span class="co">#&gt;          a        b        d        e</span></span>
+<span id="cb32-7"><a href="#cb32-7" tabindex="-1"></a><span class="co">#&gt; 1 18.87905 20.14102       NA       NA</span></span>
+<span id="cb32-8"><a href="#cb32-8" tabindex="-1"></a><span class="co">#&gt; 2 19.53965 20.25858       NA       NA</span></span>
+<span id="cb32-9"><a href="#cb32-9" tabindex="-1"></a><span class="co">#&gt; 3 23.11742 23.43013       NA       NA</span></span>
+<span id="cb32-10"><a href="#cb32-10" tabindex="-1"></a><span class="co">#&gt; 4       NA       NA 20.22137 16.06677</span></span>
+<span id="cb32-11"><a href="#cb32-11" tabindex="-1"></a><span class="co">#&gt; 5       NA       NA 18.88832 21.40271</span></span>
+<span id="cb32-12"><a href="#cb32-12" tabindex="-1"></a><span class="co">#&gt; 6       NA       NA 23.57383 19.05442</span></span>
+<span id="cb32-13"><a href="#cb32-13" tabindex="-1"></a><span class="co">#&gt; 7       NA       NA 20.99570 17.86435</span></span>
+<span id="cb32-14"><a href="#cb32-14" tabindex="-1"></a></span>
+<span id="cb32-15"><a href="#cb32-15" tabindex="-1"></a><span class="co"># check if connected:</span></span>
+<span id="cb32-16"><a href="#cb32-16" tabindex="-1"></a>dt2[, <span class="fu">is.connected</span>(<span class="at">r=</span>region, <span class="at">n=</span>product)]</span>
+<span id="cb32-17"><a href="#cb32-17" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<p>In this case, no price comparison involving all regions is possible.
+The price indices implemented in the <code>pricelevels</code>-package
+deal with this issue by using either the block of regions that includes
+the base region or the biggest block of regions for a price comparison
+on a subset of the data.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="co"># bilateral jevons index:</span></span>
+<span id="cb33-2"><a href="#cb33-2" tabindex="-1"></a>dt2[, <span class="fu">jevons</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;a&quot;</span>)]</span>
+<span id="cb33-3"><a href="#cb33-3" tabindex="-1"></a><span class="co">#&gt; Warning: Non-connected regions -&gt; computations with subset of data</span></span>
+<span id="cb33-4"><a href="#cb33-4" tabindex="-1"></a><span class="co">#&gt;        a        b        d        e </span></span>
+<span id="cb33-5"><a href="#cb33-5" tabindex="-1"></a><span class="co">#&gt; 1.000000 1.038826       NA       NA</span></span>
+<span id="cb33-6"><a href="#cb33-6" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="#cb33-7" tabindex="-1"></a><span class="co"># multilateral unweighted cpd index:</span></span>
+<span id="cb33-8"><a href="#cb33-8" tabindex="-1"></a>dt2[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;a&quot;</span>)]</span>
+<span id="cb33-9"><a href="#cb33-9" tabindex="-1"></a><span class="co">#&gt; Warning: Non-connected regions -&gt; computations with subset of data</span></span>
+<span id="cb33-10"><a href="#cb33-10" tabindex="-1"></a><span class="co">#&gt;        a        b        d        e </span></span>
+<span id="cb33-11"><a href="#cb33-11" tabindex="-1"></a><span class="co">#&gt; 1.000000 1.038826       NA       NA</span></span></code></pre></div>
+<p>As can be seen, the two functions return the price levels for regions
+<code>a</code> and <code>b</code> only, while the price levels for
+regions <code>c</code> and <code>d</code> are set to <code>NA</code>.
+The functions also print a corresponding warning. All
+<code>pricelevels</code>-warnings can be suppressed in the settings if
+wanted.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a>dt2[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;a&quot;</span>, <span class="at">settings=</span><span class="fu">list</span>(<span class="at">chatty=</span><span class="cn">FALSE</span>))]</span>
+<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a><span class="co">#&gt;        a        b        d        e </span></span>
+<span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a><span class="co">#&gt; 1.000000 1.038826       NA       NA</span></span></code></pre></div>
+<p>Also the checking of connectedness can be suppressed. This can be
+useful in simulations or other cases when it is known that the data are
+connected. Of course, in our example this setting would result in an
+error.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a>dt2[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;a&quot;</span>, <span class="at">settings=</span><span class="fu">list</span>(<span class="at">connect=</span><span class="cn">FALSE</span>))]</span>
+<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a><span class="co">#&gt; Error in lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...): singular fit encountered</span></span></code></pre></div>
+<p>If the data contains duplicated prices or missing values
+<code>NA</code>, these are removed before any calculations start. Prices
+and weights are averaged within each basic heading for each region and
+product, while quantities are summed up. Again, a corresponding warning
+message is returned.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="co"># example data:</span></span>
+<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fu">data.table</span>(</span>
+<span id="cb36-3"><a href="#cb36-3" tabindex="-1"></a>  <span class="st">&quot;region&quot;</span><span class="ot">=</span><span class="fu">c</span>(<span class="st">&quot;a&quot;</span>,<span class="st">&quot;a&quot;</span>,<span class="st">&quot;a&quot;</span>,<span class="st">&quot;b&quot;</span>,<span class="st">&quot;b&quot;</span>,<span class="st">&quot;b&quot;</span>,<span class="st">&quot;b&quot;</span>),</span>
+<span id="cb36-4"><a href="#cb36-4" tabindex="-1"></a>  <span class="st">&quot;product&quot;</span><span class="ot">=</span><span class="fu">as.character</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>)))</span>
+<span id="cb36-5"><a href="#cb36-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb36-6"><a href="#cb36-6" tabindex="-1"></a>dt[, <span class="st">&quot;price&quot;</span><span class="sc">:=</span><span class="fu">rnorm</span>(<span class="at">n=</span>.N, <span class="at">mean=</span><span class="dv">20</span>, <span class="at">sd=</span><span class="dv">2</span>)]</span>
+<span id="cb36-7"><a href="#cb36-7" tabindex="-1"></a>dt[, <span class="st">&quot;quantity&quot;</span><span class="sc">:=</span><span class="fu">rnorm</span>(<span class="at">n=</span>.N, <span class="at">mean=</span><span class="dv">999</span>, <span class="at">sd=</span><span class="dv">100</span>)]</span>
+<span id="cb36-8"><a href="#cb36-8" tabindex="-1"></a>dt[<span class="dv">1</span>, <span class="st">&quot;price&quot;</span> <span class="sc">:=</span> <span class="cn">NA_real_</span>]</span>
+<span id="cb36-9"><a href="#cb36-9" tabindex="-1"></a></span>
+<span id="cb36-10"><a href="#cb36-10" tabindex="-1"></a>dt[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product)]</span>
+<span id="cb36-11"><a href="#cb36-11" tabindex="-1"></a><span class="co">#&gt; Warning: 1 incomplete case(s) found and removed</span></span>
+<span id="cb36-12"><a href="#cb36-12" tabindex="-1"></a><span class="co">#&gt; Warning: Duplicated observations found and aggregated</span></span>
+<span id="cb36-13"><a href="#cb36-13" tabindex="-1"></a><span class="co">#&gt;         a         b </span></span>
+<span id="cb36-14"><a href="#cb36-14" tabindex="-1"></a><span class="co">#&gt; 1.0020896 0.9979148</span></span></code></pre></div>
+</div>
+<div id="calculation-of-multiple-price-indices-at-once" class="section level2">
+<h2>Calculation of multiple price indices at once</h2>
+<p>In some situations it is useful to compute the price levels of the
+regions using multiple price indices. This could be done by calculating,
+for example, the CPD index, the GEKS-Jevons index, and the Jevons index,
+separately using the corresponding package functions.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="co"># example data:</span></span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fu">rdata</span>(<span class="at">R=</span><span class="dv">5</span>, <span class="at">B=</span><span class="dv">1</span>, <span class="at">N=</span><span class="dv">7</span>, <span class="at">gaps=</span><span class="fl">0.2</span>)</span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a></span>
+<span id="cb37-5"><a href="#cb37-5" tabindex="-1"></a><span class="co"># cpd:</span></span>
+<span id="cb37-6"><a href="#cb37-6" tabindex="-1"></a>dt[, <span class="fu">cpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb37-7"><a href="#cb37-7" tabindex="-1"></a><span class="co">#&gt;        1        2        3        4        5 </span></span>
+<span id="cb37-8"><a href="#cb37-8" tabindex="-1"></a><span class="co">#&gt; 1.000000 1.304266 1.170156 1.098752 1.197490</span></span>
+<span id="cb37-9"><a href="#cb37-9" tabindex="-1"></a></span>
+<span id="cb37-10"><a href="#cb37-10" tabindex="-1"></a><span class="co"># geks-jevons:</span></span>
+<span id="cb37-11"><a href="#cb37-11" tabindex="-1"></a>dt[, <span class="fu">geks</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>, <span class="at">setting=</span><span class="fu">list</span>(<span class="at">type=</span><span class="st">&quot;jevons&quot;</span>))]</span>
+<span id="cb37-12"><a href="#cb37-12" tabindex="-1"></a><span class="co">#&gt;        1        2        3        4        5 </span></span>
+<span id="cb37-13"><a href="#cb37-13" tabindex="-1"></a><span class="co">#&gt; 1.000000 1.294057 1.165078 1.093972 1.191073</span></span>
+<span id="cb37-14"><a href="#cb37-14" tabindex="-1"></a></span>
+<span id="cb37-15"><a href="#cb37-15" tabindex="-1"></a><span class="co"># jevons:</span></span>
+<span id="cb37-16"><a href="#cb37-16" tabindex="-1"></a>dt[, <span class="fu">jevons</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb37-17"><a href="#cb37-17" tabindex="-1"></a><span class="co">#&gt;        1        2        3        4        5 </span></span>
+<span id="cb37-18"><a href="#cb37-18" tabindex="-1"></a><span class="co">#&gt; 1.000000 1.294572 1.145790 1.097794 1.206428</span></span></code></pre></div>
+<p>However, this approach is not convenient and also not efficient as
+each price index function checks the same user inputs, removes the same
+missing values and duplicated observations, and connects the same data
+if needed. This can be time consuming for bigger datasets. The
+<code>pricelevels</code>-package therefore offers the
+<code>pricelevels()</code>-function, which can be used to efficiently
+calculate multiple price indices at once.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a>dt[, <span class="fu">pricelevels</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>, <span class="at">settings=</span><span class="fu">list</span>(<span class="at">type=</span><span class="fu">c</span>(<span class="st">&quot;jevons&quot;</span>,<span class="st">&quot;cpd&quot;</span>,<span class="st">&quot;geks-jevons&quot;</span>)))]</span>
+<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a><span class="co">#&gt;             1        2        3        4        5</span></span>
+<span id="cb38-3"><a href="#cb38-3" tabindex="-1"></a><span class="co">#&gt; cpd         1 1.304266 1.170156 1.098752 1.197490</span></span>
+<span id="cb38-4"><a href="#cb38-4" tabindex="-1"></a><span class="co">#&gt; geks-jevons 1 1.294057 1.165078 1.093972 1.191073</span></span>
+<span id="cb38-5"><a href="#cb38-5" tabindex="-1"></a><span class="co">#&gt; jevons      1 1.294572 1.145790 1.097794 1.206428</span></span></code></pre></div>
+<p>If the user wants to compute all unweighted price indices available
+in the <code>pricelevels</code>-package, this can be achieved by setting
+<code>settings$type=NULL</code>:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a>dt[, <span class="fu">pricelevels</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a><span class="co">#&gt;               1        2        3        4        5</span></span>
+<span id="cb39-3"><a href="#cb39-3" tabindex="-1"></a><span class="co">#&gt; bmw           1 1.294645 1.145793 1.097794 1.206430</span></span>
+<span id="cb39-4"><a href="#cb39-4" tabindex="-1"></a><span class="co">#&gt; carli         1 1.303176 1.147201 1.098526 1.209764</span></span>
+<span id="cb39-5"><a href="#cb39-5" tabindex="-1"></a><span class="co">#&gt; cpd           1 1.304266 1.170156 1.098752 1.197490</span></span>
+<span id="cb39-6"><a href="#cb39-6" tabindex="-1"></a><span class="co">#&gt; cswd          1 1.294864 1.145803 1.097795 1.206437</span></span>
+<span id="cb39-7"><a href="#cb39-7" tabindex="-1"></a><span class="co">#&gt; dutot         1 1.303007 1.150488 1.099698 1.208837</span></span>
+<span id="cb39-8"><a href="#cb39-8" tabindex="-1"></a><span class="co">#&gt; geks-bmw      1 1.294092 1.165093 1.093983 1.191088</span></span>
+<span id="cb39-9"><a href="#cb39-9" tabindex="-1"></a><span class="co">#&gt; geks-carli    1 1.294195 1.165138 1.094014 1.191133</span></span>
+<span id="cb39-10"><a href="#cb39-10" tabindex="-1"></a><span class="co">#&gt; geks-cswd     1 1.294195 1.165138 1.094014 1.191133</span></span>
+<span id="cb39-11"><a href="#cb39-11" tabindex="-1"></a><span class="co">#&gt; geks-dutot    1 1.302091 1.168106 1.096550 1.194862</span></span>
+<span id="cb39-12"><a href="#cb39-12" tabindex="-1"></a><span class="co">#&gt; geks-harmonic 1 1.294195 1.165138 1.094014 1.191133</span></span>
+<span id="cb39-13"><a href="#cb39-13" tabindex="-1"></a><span class="co">#&gt; geks-jevons   1 1.294057 1.165078 1.093972 1.191073</span></span>
+<span id="cb39-14"><a href="#cb39-14" tabindex="-1"></a><span class="co">#&gt; harmonic      1 1.286606 1.144407 1.097065 1.203118</span></span>
+<span id="cb39-15"><a href="#cb39-15" tabindex="-1"></a><span class="co">#&gt; jevons        1 1.294572 1.145790 1.097794 1.206428</span></span>
+<span id="cb39-16"><a href="#cb39-16" tabindex="-1"></a><span class="co">#&gt; nlcpd         1 1.313387 1.164121 1.096029 1.193531</span></span></code></pre></div>
+<p>Similarly, if there are quantities or weights available in the data,
+all weighted and unweighted price indices available in the
+<code>pricelevels</code>-package are computed at once:</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a>dt[, <span class="fu">pricelevels</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity, <span class="at">base=</span><span class="st">&quot;1&quot;</span>)]</span>
+<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a><span class="co">#&gt;                   1        2        3        4        5</span></span>
+<span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a><span class="co">#&gt; banerjee          1 1.253417 1.141503 1.094111 1.198268</span></span>
+<span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a><span class="co">#&gt; bmw               1 1.294645 1.145793 1.097794 1.206430</span></span>
+<span id="cb40-5"><a href="#cb40-5" tabindex="-1"></a><span class="co">#&gt; carli             1 1.303176 1.147201 1.098526 1.209764</span></span>
+<span id="cb40-6"><a href="#cb40-6" tabindex="-1"></a><span class="co">#&gt; cpd               1 1.266089 1.152739 1.082465 1.182087</span></span>
+<span id="cb40-7"><a href="#cb40-7" tabindex="-1"></a><span class="co">#&gt; cswd              1 1.294864 1.145803 1.097795 1.206437</span></span>
+<span id="cb40-8"><a href="#cb40-8" tabindex="-1"></a><span class="co">#&gt; davies            1 1.252229 1.142528 1.094370 1.199939</span></span>
+<span id="cb40-9"><a href="#cb40-9" tabindex="-1"></a><span class="co">#&gt; drobisch          1 1.252491 1.142447 1.094359 1.200005</span></span>
+<span id="cb40-10"><a href="#cb40-10" tabindex="-1"></a><span class="co">#&gt; dutot             1 1.303007 1.150488 1.099698 1.208837</span></span>
+<span id="cb40-11"><a href="#cb40-11" tabindex="-1"></a><span class="co">#&gt; fisher            1 1.252462 1.142372 1.094347 1.199874</span></span>
+<span id="cb40-12"><a href="#cb40-12" tabindex="-1"></a><span class="co">#&gt; geks-banerjee     1 1.271009 1.153711 1.083487 1.180644</span></span>
+<span id="cb40-13"><a href="#cb40-13" tabindex="-1"></a><span class="co">#&gt; geks-bmw          1 1.294092 1.165093 1.093983 1.191088</span></span>
+<span id="cb40-14"><a href="#cb40-14" tabindex="-1"></a><span class="co">#&gt; geks-carli        1 1.294195 1.165138 1.094014 1.191133</span></span>
+<span id="cb40-15"><a href="#cb40-15" tabindex="-1"></a><span class="co">#&gt; geks-cswd         1 1.294195 1.165138 1.094014 1.191133</span></span>
+<span id="cb40-16"><a href="#cb40-16" tabindex="-1"></a><span class="co">#&gt; geks-davies       1 1.270677 1.154297 1.084168 1.181476</span></span>
+<span id="cb40-17"><a href="#cb40-17" tabindex="-1"></a><span class="co">#&gt; geks-drobisch     1 1.270818 1.154259 1.084083 1.181445</span></span>
+<span id="cb40-18"><a href="#cb40-18" tabindex="-1"></a><span class="co">#&gt; geks-dutot        1 1.302091 1.168106 1.096550 1.194862</span></span>
+<span id="cb40-19"><a href="#cb40-19" tabindex="-1"></a><span class="co">#&gt; geks-fisher       1 1.270818 1.154259 1.084083 1.181445</span></span>
+<span id="cb40-20"><a href="#cb40-20" tabindex="-1"></a><span class="co">#&gt; geks-geolaspeyres 1 1.270597 1.154364 1.084272 1.181536</span></span>
+<span id="cb40-21"><a href="#cb40-21" tabindex="-1"></a><span class="co">#&gt; geks-geopaasche   1 1.270597 1.154364 1.084272 1.181536</span></span>
+<span id="cb40-22"><a href="#cb40-22" tabindex="-1"></a><span class="co">#&gt; geks-geowalsh     1 1.269451 1.153443 1.084131 1.181396</span></span>
+<span id="cb40-23"><a href="#cb40-23" tabindex="-1"></a><span class="co">#&gt; geks-harmonic     1 1.294195 1.165138 1.094014 1.191133</span></span>
+<span id="cb40-24"><a href="#cb40-24" tabindex="-1"></a><span class="co">#&gt; geks-jevons       1 1.294057 1.165078 1.093972 1.191073</span></span>
+<span id="cb40-25"><a href="#cb40-25" tabindex="-1"></a><span class="co">#&gt; geks-laspeyres    1 1.270818 1.154259 1.084083 1.181445</span></span>
+<span id="cb40-26"><a href="#cb40-26" tabindex="-1"></a><span class="co">#&gt; geks-lehr         1 1.253837 1.142062 1.078325 1.171155</span></span>
+<span id="cb40-27"><a href="#cb40-27" tabindex="-1"></a><span class="co">#&gt; geks-lowe         1 1.281260 1.159068 1.089011 1.182639</span></span>
+<span id="cb40-28"><a href="#cb40-28" tabindex="-1"></a><span class="co">#&gt; geks-medgeworth   1 1.270634 1.155082 1.084910 1.183136</span></span>
+<span id="cb40-29"><a href="#cb40-29" tabindex="-1"></a><span class="co">#&gt; geks-paasche      1 1.270818 1.154259 1.084083 1.181445</span></span>
+<span id="cb40-30"><a href="#cb40-30" tabindex="-1"></a><span class="co">#&gt; geks-palgrave     1 1.270620 1.154579 1.084537 1.181742</span></span>
+<span id="cb40-31"><a href="#cb40-31" tabindex="-1"></a><span class="co">#&gt; geks-svartia      1 1.269841 1.153757 1.084181 1.181444</span></span>
+<span id="cb40-32"><a href="#cb40-32" tabindex="-1"></a><span class="co">#&gt; geks-theil        1 1.269829 1.153749 1.084179 1.181445</span></span>
+<span id="cb40-33"><a href="#cb40-33" tabindex="-1"></a><span class="co">#&gt; geks-toernqvist   1 1.270597 1.154364 1.084272 1.181536</span></span>
+<span id="cb40-34"><a href="#cb40-34" tabindex="-1"></a><span class="co">#&gt; geks-uvalue       1 1.236111 1.163371 1.076930 1.211239</span></span>
+<span id="cb40-35"><a href="#cb40-35" tabindex="-1"></a><span class="co">#&gt; geks-walsh        1 1.269482 1.153458 1.084141 1.181411</span></span>
+<span id="cb40-36"><a href="#cb40-36" tabindex="-1"></a><span class="co">#&gt; geks-young        1 1.281712 1.159905 1.090079 1.183622</span></span>
+<span id="cb40-37"><a href="#cb40-37" tabindex="-1"></a><span class="co">#&gt; geolaspeyres      1 1.255885 1.128502 1.088582 1.179864</span></span>
+<span id="cb40-38"><a href="#cb40-38" tabindex="-1"></a><span class="co">#&gt; geopaasche        1 1.248368 1.157057 1.100236 1.220512</span></span>
+<span id="cb40-39"><a href="#cb40-39" tabindex="-1"></a><span class="co">#&gt; geowalsh          1 1.252576 1.140507 1.093937 1.200037</span></span>
+<span id="cb40-40"><a href="#cb40-40" tabindex="-1"></a><span class="co">#&gt; gerardi           1 1.241508 1.141248 1.081700 1.175969</span></span>
+<span id="cb40-41"><a href="#cb40-41" tabindex="-1"></a><span class="co">#&gt; gkhamis           1 1.267113 1.156586 1.084440 1.183675</span></span>
+<span id="cb40-42"><a href="#cb40-42" tabindex="-1"></a><span class="co">#&gt; harmonic          1 1.286606 1.144407 1.097065 1.203118</span></span>
+<span id="cb40-43"><a href="#cb40-43" tabindex="-1"></a><span class="co">#&gt; idb               1 1.266336 1.153682 1.083412 1.183243</span></span>
+<span id="cb40-44"><a href="#cb40-44" tabindex="-1"></a><span class="co">#&gt; jevons            1 1.294572 1.145790 1.097794 1.206428</span></span>
+<span id="cb40-45"><a href="#cb40-45" tabindex="-1"></a><span class="co">#&gt; laspeyres         1 1.261008 1.129372 1.089128 1.182314</span></span>
+<span id="cb40-46"><a href="#cb40-46" tabindex="-1"></a><span class="co">#&gt; lehr              1 1.246348 1.126641 1.087801 1.183916</span></span>
+<span id="cb40-47"><a href="#cb40-47" tabindex="-1"></a><span class="co">#&gt; lowe              1 1.279239 1.142610 1.093595 1.196531</span></span>
+<span id="cb40-48"><a href="#cb40-48" tabindex="-1"></a><span class="co">#&gt; medgeworth        1 1.250211 1.142092 1.096414 1.203379</span></span>
+<span id="cb40-49"><a href="#cb40-49" tabindex="-1"></a><span class="co">#&gt; nlcpd             1 1.304658 1.160267 1.094826 1.189399</span></span>
+<span id="cb40-50"><a href="#cb40-50" tabindex="-1"></a><span class="co">#&gt; paasche           1 1.243973 1.155522 1.099591 1.217695</span></span>
+<span id="cb40-51"><a href="#cb40-51" tabindex="-1"></a><span class="co">#&gt; palgrave          1 1.253266 1.158605 1.100882 1.223354</span></span>
+<span id="cb40-52"><a href="#cb40-52" tabindex="-1"></a><span class="co">#&gt; rao               1 1.266089 1.152739 1.082465 1.182087</span></span>
+<span id="cb40-53"><a href="#cb40-53" tabindex="-1"></a><span class="co">#&gt; svartia           1 1.252423 1.141251 1.094091 1.200032</span></span>
+<span id="cb40-54"><a href="#cb40-54" tabindex="-1"></a><span class="co">#&gt; theil             1 1.252424 1.141228 1.094087 1.200039</span></span>
+<span id="cb40-55"><a href="#cb40-55" tabindex="-1"></a><span class="co">#&gt; toernqvist        1 1.252121 1.142690 1.094394 1.200016</span></span>
+<span id="cb40-56"><a href="#cb40-56" tabindex="-1"></a><span class="co">#&gt; uvalue            1 1.222189 1.171691 1.093794 1.197584</span></span>
+<span id="cb40-57"><a href="#cb40-57" tabindex="-1"></a><span class="co">#&gt; walsh             1 1.252639 1.140511 1.093938 1.200043</span></span>
+<span id="cb40-58"><a href="#cb40-58" tabindex="-1"></a><span class="co">#&gt; young             1 1.287435 1.144315 1.095294 1.200834</span></span></code></pre></div>
+<p>It is important to note that only the simplified output including the
+regions’ price levels is returned. Moreover, the user has to provide a
+specific base region as bilateral indices do not allow a comparison to
+the average regional price level. However, any additional settings of
+some price index function (e.g., <code>settings$use.jac=TRUE</code> for
+<code>nlcpd()</code>) can be used in <code>pricelevels()</code> as
+well.</p>
+</div>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Auer2022a" class="csl-entry">
+Auer, Ludwig von, and Sebastian Weinand. 2022. <span>“<span>A</span>
+<span>N</span>onlinear <span>G</span>eneralization of the
+<span>C</span>ountry-<span>P</span>roduct-<span>D</span>ummy
+<span>M</span>ethod.”</span> Discussion Paper 45. Deutsche Bundesbank.
+</div>
+<div id="ref-Balk1996" class="csl-entry">
+Balk, Bert. 1996. <span>“<span class="nocase">A comparison of ten
+methods for multilateral international price and volume
+comparisons</span>.”</span> <em>Journal of Official Statistics</em> 12
+(1): 199–222.
+</div>
+<div id="ref-Balk2005" class="csl-entry">
+———. 2005. <span>“<span class="nocase">Price Indexes for Elementary
+Aggregates: The Sampling Approach</span>.”</span> <em>Journal of
+Official Statistics</em> 21 (4): 675–99.
+</div>
+<div id="ref-Banerjee1977" class="csl-entry">
+Banerjee, Kali S. 1977. <em><span class="nocase">On the factorial
+approach providing the true index of cost of living</span></em>.
+Göttingen: Vandenhoeck &amp; Ruprecht.
+</div>
+<div id="ref-Carli1804" class="csl-entry">
+Carli, Gian Rinaldo. 1804. <span>“Del Valore e Della Proporzione Dei
+Metallic Monetati.”</span> In <em>Scrittori Classici Italiani Di
+Economia Politica</em>, 297–366. Milano: G. G. Destefanis.
+</div>
+<div id="ref-Carruthers1980" class="csl-entry">
+Carruthers, A. G., D. J. Sellwood, and P. W. Ward. 1980. <span>“<span class="nocase">Recent Developments in the Retail Prices
+Index</span>.”</span> <em>The Statistician</em> 29 (1): 1–32. <a href="https://doi.org/10.2307/2987492">https://doi.org/10.2307/2987492</a>.
+</div>
+<div id="ref-Coggeshall1886" class="csl-entry">
+Coggeshall, F. 1886. <span>“<span class="nocase">The Arithmetic,
+Geometric, and Harmonic Means</span>.”</span> <em>The Quarterly Journal
+of Economics</em> 1 (1): 83–86. <a href="https://doi.org/10.2307/1883111">https://doi.org/10.2307/1883111</a>.
+</div>
+<div id="ref-Dalen1992" class="csl-entry">
+Dalén, Jörgen. 1992. <span>“<span class="nocase">Computing Elementary
+Aggregates in the Swedish Consumer Price Index</span>.”</span>
+<em>Journal of Official Statistics</em> 8 (2): 129–47.
+</div>
+<div id="ref-Davies1924" class="csl-entry">
+Davies, George R. 1924. <span>“<span class="nocase">The Problem of a
+Standard Index Number Formula</span>.”</span> <em>Journal of the
+American Statistical Association</em> 19 (146): 180–88.
+</div>
+<div id="ref-Diewert1999" class="csl-entry">
+Diewert, Walter Erwin. 1999. <span>“<span>A</span>xiomatic and
+<span>E</span>conomic <span>A</span>pproaches to
+<span>I</span>nternational <span>C</span>omparisons.”</span> In
+<em>International and Interarea Comparisons of Income, Output, and
+Prices</em>, 13–107. University of Chicago Press. <a href="http://www.nber.org/chapters/c8385">http://www.nber.org/chapters/c8385</a>.
+</div>
+<div id="ref-Dikhanov1994" class="csl-entry">
+Dikhanov, Yuri. 1994. <span>“<span class="nocase">Sensitivity of
+PPP-based income estimates to the choice of aggregation
+procedures</span>.”</span>
+</div>
+<div id="ref-Drobisch1871a" class="csl-entry">
+Drobisch, Moritz Wilhelm. 1871a. <span>“<span class="nocase">Über die
+Berechnung der Veränderungen der Waarenpreise und des
+Geldwerths</span>.”</span> <em>Jahrbücher <span>f</span>ür
+Nationalökonomie <span>u</span>nd Statistik</em> 16: 143–56.
+</div>
+<div id="ref-Drobisch1871b" class="csl-entry">
+———. 1871b. <span>“<span class="nocase">Über einige Einwürfe gegen die
+indiesen Jahrbüchern veröffentlichte neue Methode, die Veränderungen der
+Waarenpreise und des Geldwerths zu berechten</span>.”</span>
+<em>Jahrbücher <span>f</span>ür Nationalökonomie <span>u</span>nd
+Statistik</em> 16: 416–27.
+</div>
+<div id="ref-Dutot1738" class="csl-entry">
+Dutot, Nicolas. 1738. <em><span class="nocase">Réflections politiques
+sur les finances et le commerce</span></em>. La Haye: Les frères
+Vaillant et N. Prevost.
+</div>
+<div id="ref-Edgeworth1925" class="csl-entry">
+Edgeworth, Francis Ysidro. 1925. <em><span class="nocase">Papers
+Relating to Political Economy</span></em>. Vol. 1. London: Macmillan for
+the Royal Economic Society.
+</div>
+<div id="ref-Elteto1964" class="csl-entry">
+Eltetö, Ödön, and Pál Köves. 1964. <span>“<span>O</span>n a
+<span>P</span>roblem of <span>I</span>ndex <span>N</span>umber
+<span>C</span>omputation <span>R</span>elating to
+<span>I</span>nternational <span>C</span>omparison.”</span>
+<em>Statisztikai Szemle</em> 42: 507–18.
+</div>
+<div id="ref-Eurostat1978" class="csl-entry">
+Eurostat. 1978. <em><span class="nocase">Comparison in real values of
+the aggregates of ESA 1975</span></em>. Luxembourg: Publications Office
+of the European Commission.
+</div>
+<div id="ref-Fisher1921" class="csl-entry">
+Fisher, Irving. 1921. <span>“<span class="nocase">The Best Form of Index
+Number</span>.”</span> <em>Quarterly Publications of the American
+Statistical Association</em> 17 (133): 533–37. <a href="https://doi.org/10.2307/2965310">https://doi.org/10.2307/2965310</a>.
+</div>
+<div id="ref-Geary1958" class="csl-entry">
+Geary, Robert Charles. 1958. <span>“<span>A</span> <span>N</span>ote on
+the <span>C</span>omparison of <span>E</span>xchange <span>R</span>ates
+and <span>P</span>urchasing <span>P</span>ower <span>B</span>etween
+<span>C</span>ountries.”</span> <em>Journal of the Royal Statistical
+Society. Series A (General)</em> 121 (1): 97–99.
+</div>
+<div id="ref-Gini1924" class="csl-entry">
+Gini, Corrado. 1924. <span>“<span>Q</span>uelques
+<span>C</span>onsiderations Au <span>S</span>ujet de La
+<span>C</span>onstruction Des <span>N</span>ombres <span>I</span>ndices
+Des <span>P</span>rix Et Des <span>Q</span>uestions
+<span>A</span>nalogues.”</span> <em>Mentron</em> 4 (1): 3–162.
+</div>
+<div id="ref-Gini1931" class="csl-entry">
+———. 1931. <span>“<span>O</span>n the <span>C</span>ircular
+<span>T</span>est of <span>I</span>ndex <span>N</span>umbers.”</span>
+<em>International Statistical Review</em> 9 (2): 3–25.
+</div>
+<div id="ref-Ikle1972" class="csl-entry">
+Ikle, Doris M. 1972. <span>“A New Approach to the Index Number
+Problem.”</span> <em>The Quarterly Journal of Economics</em> 86 (2):
+188. <a href="https://doi.org/10.2307/1880559">https://doi.org/10.2307/1880559</a>.
+</div>
+<div id="ref-ILO2020" class="csl-entry">
+ILO, IMF, OECD, UNECE, Eurostat, and World Bank. 2020.
+<em><span>C</span>onsumer <span>P</span>rice <span>I</span>ndex
+<span>M</span>anual: <span>C</span>oncepts and
+<span>M</span>ethods</em>. Washington DC: International Monetary Fund.
+<a href="https://doi.org/10.5089/9781484354841.069">https://doi.org/10.5089/9781484354841.069</a>.
+</div>
+<div id="ref-Jevons1865" class="csl-entry">
+Jevons, William Stanley. 1865. <span>“<span>O</span>n the
+<span>V</span>ariation of <span>P</span>rices and the <span>V</span>alue
+of the <span>C</span>urrency Since 1782.”</span> <em>Journal of the
+Statistical Society of London</em> 28 (2): 294–320. <a href="http://www.jstor.org/stable/2338419">http://www.jstor.org/stable/2338419</a>.
+</div>
+<div id="ref-Khamis1972" class="csl-entry">
+Khamis, Salem H. 1972. <span>“<span>A</span> <span>N</span>ew
+<span>S</span>ystem of <span>I</span>ndex <span>N</span>umbers for
+<span>N</span>ational and <span>I</span>nternational
+<span>P</span>urposes.”</span> <em>Journal of the Royal Statistical
+Society. Series A (General)</em> 135 (1): 96–121.
+</div>
+<div id="ref-Laspeyres1871" class="csl-entry">
+Laspeyres, Etienne. 1871. <span>“<span class="nocase">Die Berechnung
+einer mittleren Waarenpreissteigerung</span>.”</span> <em>Jahrbücher
+<span>f</span>ür Nationalökonomie <span>u</span>nd Statistik</em> 16
+(1): 296–314.
+</div>
+<div id="ref-Lehr1885" class="csl-entry">
+Lehr, Julius. 1885. <em><span class="nocase">Beiträge <span class="nocase">z</span>ur Statistik <span class="nocase">d</span>er
+Preise: Insbesondere <span class="nocase">d</span>es Geldes <span class="nocase">u</span>nd <span class="nocase">d</span>es
+Holzes</span></em>. Frankfurt am Main: F. D. Sauerländer Verlag.
+</div>
+<div id="ref-Lowe1823" class="csl-entry">
+Lowe, Joseph. 1823. <em><span class="nocase">The Present State of
+England in Regard to Agriculture, Trade and Finance</span></em>. 2nd ed.
+London: Longman, Hurst, Rees, Orme,; Brown.
+</div>
+<div id="ref-Marshall1887" class="csl-entry">
+Marshall, Alfred. 1887. <span>“<span class="nocase">Remedies for
+Fluctuations of General Prices</span>.”</span> <em>Contemporary
+Review</em> 51: 355–75.
+</div>
+<div id="ref-Mehrhoff2007" class="csl-entry">
+Mehrhoff, Jens. 2007. <span>“<span class="nocase">A Linear Approximation
+to the Jevons Index</span>.”</span> In <em><span class="nocase">Index
+Theory and Price Statistics</span></em>, edited by Peter von der Lippe.
+Peter Lang Ltd. International Academic Publishers.
+</div>
+<div id="ref-Paasche1874" class="csl-entry">
+Paasche, Hermann. 1874. <span>“<span class="nocase">Über die
+Preisentwicklung der letzten Jahre nach den Hamburger
+Börsennotierungen</span>.”</span> <em>Jahrbücher <span>f</span>ür
+Nationalökonomie <span>u</span>nd Statistik</em> 12: 168–78.
+</div>
+<div id="ref-Palgrave1886" class="csl-entry">
+Palgrave, Robert Harry Inglis. 1886. <span>“<span class="nocase">Currency and Standard of Value in England, France and
+India and the Rates of Exchange Between These Countries</span>.”</span>
+Memorandum for the Royal Commission on the Depression of Trade and
+Industry. In <em>British Parliamentary Papers: Session 1886: Third
+Report and Final Report of the Royal Commission on the Depression in
+Trade and Industry, with Minutes of Evidence and Appendices</em>.
+Shannon, Ireland: Irish University Press, 1969.
+</div>
+<div id="ref-Rao1990" class="csl-entry">
+Rao, D. S. Prasada. 1990. <span>“A System of Log-Change Index Numbers
+for Multilateral Comparisons.”</span> In <em>Comparisons of Prices and
+Real Products in Latin America. Contributions to Economic Analysis
+Series</em>, edited by Salazar-Carrillo and Rao. Amsterdam:
+North-Holland Publishing Company.
+</div>
+<div id="ref-Rao1986" class="csl-entry">
+Rao, D. S. Prasada, and K. S. Banerjee. 1986. <span>“<span>A</span>
+<span>M</span>ultilateral <span>I</span>ndex <span>N</span>umber
+<span>S</span>ystem <span>B</span>ased on the <span>F</span>actorial
+<span>A</span>pproach.”</span> <em>Statistische Hefte</em> 27 (1):
+297–313. <a href="https://doi.org/10.1007/BF02932575">https://doi.org/10.1007/BF02932575</a>.
+</div>
+<div id="ref-Sato1976" class="csl-entry">
+Sato, Kazuo. 1976. <span>“<span>The Ideal Log-Change Index
+Number</span>.”</span> <em>The Review of Economics and Statistics</em>
+58 (2): 223–28. <a href="https://doi.org/10.2307/1924029">https://doi.org/10.2307/1924029</a>.
+</div>
+<div id="ref-Summers1973" class="csl-entry">
+Summers, Robert. 1973. <span>“<span>I</span>nternational
+<span>P</span>rice <span>C</span>omparisons <span>B</span>ased Upon
+<span>I</span>ncomplete <span>D</span>ata.”</span> <em>Review of Income
+and Wealth</em> 19 (1): 1–16. https://doi.org/<a href="https://doi.org/10.1111/j.1475-4991.1973.tb00870.x">https://doi.org/10.1111/j.1475-4991.1973.tb00870.x</a>.
+</div>
+<div id="ref-Szulc1964" class="csl-entry">
+Szulc, Bohdan J. 1964. <span>“<span>I</span>ndices for
+<span>M</span>ultiregional <span>C</span>omparisons.”</span>
+<em>Przeglad Statystyczny</em> 3: 239–54.
+</div>
+<div id="ref-Theil1973" class="csl-entry">
+Theil, Henri. 1973. <span>“<span>A New Index Number
+Formula</span>.”</span> <em>The Review of Economics and Statistics</em>
+55 (4): 498–502. <a href="https://doi.org/10.2307/1925674">https://doi.org/10.2307/1925674</a>.
+</div>
+<div id="ref-Toernqvist1936" class="csl-entry">
+Törnqvist, Leo. 1936. <span>“<span class="nocase">The Bank of Finland’s
+Consumption Price Index</span>.”</span> <em>Bank of Finland Monthly
+Bulletin</em> 16 (10): 27–34.
+</div>
+<div id="ref-Vartia1976" class="csl-entry">
+Vartia, Yrjö O. 1976. <span>“<span>Ideal Log-Change Index
+Numbers</span>.”</span> <em>Scandinavian Journal of Statistics</em> 3
+(3): 121–26.
+</div>
+<div id="ref-Walsh1901" class="csl-entry">
+Walsh, Correa Moylan. 1901. <em><span class="nocase">The Measurement of
+General Exchange-Value</span></em>. New York: Macmillan.
+</div>
+<div id="ref-WorldBank2013" class="csl-entry">
+World Bank. 2013. <em><span>M</span>easuring the <span>R</span>eal
+<span>S</span>ize of the <span>W</span>orld <span>E</span>conomy:
+<span>T</span>he <span>F</span>ramework, <span>M</span>ethodology, and
+<span>R</span>esults of the <span>I</span>nternational
+<span>C</span>omparison <span>P</span>rogram</em>. Washington, DC:
+<span>W</span>orld <span>B</span>ank. <a href="https://doi.org/10.1596/978-0-8213-9728-2">https://doi.org/10.1596/978-0-8213-9728-2</a>.
+</div>
+<div id="ref-Young1812" class="csl-entry">
+Young, Arthur. 1812. <em><span class="nocase">An Inquiry into the
+Progressive Value of Money in England as Marked by the Price of
+Agricultural Products</span></em>. London: McMillan.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
