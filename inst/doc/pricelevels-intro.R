@@ -270,10 +270,19 @@ P1.gk <- dt.gaps[, gkhamis(p=price, r=region, n=product, q=quantity, base="1")]
 P3.gk <- dt.gaps[, gkhamis(p=price, r=region, n=product, q=quantity, base="3")]
 all.equal(P1.gk[2], P1.gk[3]*P3.gk[2], check.attributes=FALSE)
 
-# Rao index transitive:
-P1.rao <- dt.gaps[, rao(p=price, r=region, n=product, q=quantity, base="1")]
-P3.rao <- dt.gaps[, rao(p=price, r=region, n=product, q=quantity, base="3")]
-all.equal(P1.rao[2], P1.rao[3]*P3.rao[2], check.attributes=FALSE)
+# multilateral Carli index transitive:
+P1.carli <- dt.gaps[, mcarli(p=price, r=region, n=product, base="1")]
+P3.carli <- dt.gaps[, mcarli(p=price, r=region, n=product, base="3")]
+all.equal(P1.carli[2], P1.carli[3]*P3.carli[2], check.attributes=FALSE)
+
+## -----------------------------------------------------------------------------
+dt.gaps[, gerardi(p=price, r=region, n=product, q=quantity, base="1", settings=list(variant="adjusted"))]
+
+## -----------------------------------------------------------------------------
+# Gerardi index transitive:
+P1 <- dt.gaps[, gerardi(p=price, r=region, n=product, q=quantity, base="1")]
+P3 <- dt.gaps[, gerardi(p=price, r=region, n=product, q=quantity, base="3")]
+all.equal(P1[2], P1[3]*P3[2], check.attributes=FALSE)
 
 ## -----------------------------------------------------------------------------
 # example data:
