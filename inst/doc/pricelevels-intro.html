@@ -12,7 +12,7 @@
 
 <meta name="author" content="Sebastian Weinand" />
 
-<meta name="date" content="2024-04-08" />
+<meta name="date" content="2024-05-22" />
 
 <title>Introduction to the pricelevels-package</title>
 
@@ -363,7 +363,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Introduction to the
 pricelevels-package</h1>
 <h4 class="author">Sebastian Weinand</h4>
-<h4 class="date">08 April 2024</h4>
+<h4 class="date">22 May 2024</h4>
 
 
 <div id="TOC">
@@ -521,11 +521,11 @@ products; columns: regions) shows that the data exhibit gaps as products
 <span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co"># price matrix:</span></span>
 <span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>dt[, <span class="fu">tapply</span>(<span class="at">X=</span>p, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
 <span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt;      a    b    c    d</span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 1 13.6 19.5 13.6 15.2</span></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; 2 16.1 16.8 19.1 16.1</span></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; 3 10.8 19.3 11.7 13.2</span></span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt; 4 18.2 16.4   NA   NA</span></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; 5 12.7 18.9   NA   NA</span></span></code></pre></div>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 1 15.1 17.9 18.3 15.0</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; 2 13.7 19.6 18.1 17.5</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; 3 16.6 15.6 14.2 16.8</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt; 4 12.2 18.3   NA   NA</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; 5 14.2 17.5   NA   NA</span></span></code></pre></div>
 <p>Due to the gaps, the <code>sparsity()</code> of this dataset is
 greater 0. As there are only a few gaps, however, function
 <code>is.connected()</code> indicates that the dataset is connected. The
@@ -561,11 +561,11 @@ changed.</p>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># price matrix:</span></span>
 <span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>dt2[, <span class="fu">tapply</span>(<span class="at">X=</span>p, <span class="at">INDEX=</span><span class="fu">list</span>(n,r), <span class="at">FUN=</span>mean)]</span>
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt;      a    b    c    d</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; 1   NA   NA 13.6 15.2</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; 2   NA   NA 19.1 16.1</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; 3   NA   NA 11.7 13.2</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; 4 18.2 16.4   NA   NA</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; 5 12.7 18.9   NA   NA</span></span></code></pre></div>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; 1   NA   NA 18.3 15.0</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; 2   NA   NA 18.1 17.5</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; 3   NA   NA 14.2 16.8</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; 4 12.2 18.3   NA   NA</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; 5 14.2 17.5   NA   NA</span></span></code></pre></div>
 <p>The sparsity increased to 0.5. Even worse, the dataset is no longer
 connected. This can be easily seen from the price matrix, where regions
 <code>a</code> and <code>b</code> form one block of connected regions,
@@ -1225,7 +1225,7 @@ in <code>nlcpd()</code>.</p>
 <span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a>                              <span class="at">settings=</span><span class="fu">list</span>(<span class="at">use.jac=</span><span class="cn">FALSE</span>), <span class="at">simplify=</span><span class="cn">FALSE</span>,</span>
 <span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a>                              <span class="at">control=</span>minpack.lm<span class="sc">::</span><span class="fu">nls.lm.control</span>(<span class="st">&quot;maxiter&quot;</span><span class="ot">=</span><span class="dv">200</span>))])</span>
 <span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
-<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a><span class="co">#&gt;    0.66    0.06    0.75</span></span>
+<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a><span class="co">#&gt;    0.64    0.07    0.77</span></span>
 <span id="cb23-10"><a href="#cb23-10" tabindex="-1"></a></span>
 <span id="cb23-11"><a href="#cb23-11" tabindex="-1"></a><span class="co"># use jacobian matrix:</span></span>
 <span id="cb23-12"><a href="#cb23-12" tabindex="-1"></a><span class="fu">system.time</span>(m2 <span class="ot">&lt;-</span> dt.big[, <span class="fu">nlcpd</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity,</span>
@@ -1355,13 +1355,13 @@ computationally faster depends on the data.</p>
 <span id="cb27-6"><a href="#cb27-6" tabindex="-1"></a><span class="fu">system.time</span>(m1 <span class="ot">&lt;-</span> dt.big[, <span class="fu">gkhamis</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity,</span>
 <span id="cb27-7"><a href="#cb27-7" tabindex="-1"></a>                                   <span class="at">settings=</span><span class="fu">list</span>(<span class="at">solve=</span><span class="st">&quot;iterative&quot;</span>))])</span>
 <span id="cb27-8"><a href="#cb27-8" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
-<span id="cb27-9"><a href="#cb27-9" tabindex="-1"></a><span class="co">#&gt;    0.01    0.00    0.02</span></span>
+<span id="cb27-9"><a href="#cb27-9" tabindex="-1"></a><span class="co">#&gt;    0.00    0.00    0.02</span></span>
 <span id="cb27-10"><a href="#cb27-10" tabindex="-1"></a></span>
 <span id="cb27-11"><a href="#cb27-11" tabindex="-1"></a><span class="co"># matrix algebra:</span></span>
 <span id="cb27-12"><a href="#cb27-12" tabindex="-1"></a><span class="fu">system.time</span>(m2 <span class="ot">&lt;-</span> dt.big[, <span class="fu">gkhamis</span>(<span class="at">p=</span>price, <span class="at">r=</span>region, <span class="at">n=</span>product, <span class="at">q=</span>quantity,</span>
 <span id="cb27-13"><a href="#cb27-13" tabindex="-1"></a>                                   <span class="at">settings=</span><span class="fu">list</span>(<span class="at">solve=</span><span class="st">&quot;matrix&quot;</span>))])</span>
 <span id="cb27-14"><a href="#cb27-14" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
-<span id="cb27-15"><a href="#cb27-15" tabindex="-1"></a><span class="co">#&gt;    0.03    0.00    0.04</span></span>
+<span id="cb27-15"><a href="#cb27-15" tabindex="-1"></a><span class="co">#&gt;    0.03    0.00    0.05</span></span>
 <span id="cb27-16"><a href="#cb27-16" tabindex="-1"></a></span>
 <span id="cb27-17"><a href="#cb27-17" tabindex="-1"></a><span class="co"># compare results:</span></span>
 <span id="cb27-18"><a href="#cb27-18" tabindex="-1"></a><span class="fu">all.equal</span>(m1, m2, <span class="at">tol=</span><span class="fl">1e-05</span>)</span>
